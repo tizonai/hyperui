@@ -5,6 +5,7 @@ user-invocable: false
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
+  - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -117,7 +118,11 @@ First classify the change (single screen · multi-page · backend + UI · multi-
 platform; traits: state lifecycle, multi-table) and **propose** the diagram set (Mermaid:
 sequence always — happy path + most likely failure; flowchart for branching; stateDiagram for
 lifecycles; erDiagram for several tables; C4/flowchart for several services). One confirmation,
-then write. The design names: stack and framework with the why (non-tech: chosen for them,
+then write. **Backend + UI, multi-service or new-platform shapes produce their container/architecture
+diagram and the happy-path sequence with the `diagram` specialist** (typed IR validated by
+`scripts/diagram-check.mjs`, viewer published as an artifact, `.mmd` export): the JSON paths and the
+artifact urls go under `## Diagrams` in `02-design.md` and in `design.md`; the inline Mermaid stays for
+the small cases (≤ 6 nodes, no boundaries) and for the failure sequence when nobody will explore it. The design names: stack and framework with the why (non-tech: chosen for them,
 cited as in section 2), affected components with real paths, data model with a **column-level
 table** for every table created or changed, API contract if any, auth and personal-data
 handling resolved explicitly, product languages/i18n, errors, config and secrets

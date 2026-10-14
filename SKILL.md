@@ -114,6 +114,7 @@ words (never translated)** plus `lang=<conversation_language>` and the root, so 
 | "Revisa el código", after any build task | `review` | Security + complexity on the plugin's own output; fix blocking findings before "done" |
 | "Revisa / critica / audita / evalúa este diseño", "¿está bien esta página?", "qué opinas de", a mock, a competitor's site | `critique` | Heuristic evaluation with evidence (22 checks, repair model, conversion lens by goal); report + artifact; top 3 by impact on the goal. A designer's mock before building → `critique`, then `spec` |
 | Architecture: aggregates, consistency, external calls | `patterns` | Only when the spec calls for it; one line of why + source; never on a landing |
+| "Diagrama", "arquitectura", "flujo", "secuencia", "ciclo de vida", "cómo se conecta", a picture of the system | `diagram` | Typed JSON IR in `.hyperui/diagrams/` → validator (≤ 2 focused repairs) → self-contained viewer as an artifact + Mermaid export; Mermaid inline only for ≤ 6 nodes or a README |
 | "Cómo cobro", "dominio", "súbelo", "ponlo en producción", providers | `ship` | Provider matrix by budget × archetype × country; guided checklist in `ship.md`; never buys or deploys |
 | Containers, several services, pipelines, environments | `infra` | Terraform/Terragrunt, Fargate vs K8s with the trade-off; MCPs |
 | Dashboard, chart, "quiero ver los datos", analytics | `viz` | Munzner what–why–how table **before** any chart |
@@ -147,13 +148,13 @@ code in fenced blocks; prose names only the file or command the user must touch.
 
 1. **Skill content, references, scripts, everything written into `.hyperui/`:** English.
 2. **Replies:** the language the user writes in (`conversation_language`), switching when they switch. Code, identifiers, commits, PR text and repo docs: English unless the profile says otherwise.
-3. **Product language(s) and i18n:** asked explicitly at the brief (several locales? default locale? RTL?), stored in `product_languages` / `i18n`,
-   **never inferred from the conversation language**, never asked again once stored.
+3. **Product language(s) and i18n:** asked explicitly at the brief (several locales? default locale? RTL?), stored in `product_languages` / `i18n`, **never inferred from the conversation language**, never asked again once stored.
 
 ## 7. Quality and safety gates
 
 - **UI directions and "done" UIs pass the critique checklist** (`${CLAUDE_PLUGIN_ROOT}/skills/critique/references/checklist.md`: severities 3–4 fixed before showing), then Impeccable `audit`
   (findings addressed) → `polish`, or one line noting Impeccable is not installed. `review` runs after each build task, before "done"; blocking findings are fixed first.
+  **A diagram is never delivered without `0 errors` from `scripts/diagram-check.mjs validate`** (two focused repairs at most) **or an explicitly declared gap** naming the remaining codes; its JSON in `.hyperui/diagrams/` is what `spec`, `critique` and `patterns` read.
 - **UI is never done without browser evidence** (`${CLAUDE_PLUGIN_ROOT}/skills/design/references/browser-verify.md`): captures at
   360/768/1280, light and dark, recorded under `## Browser evidence` in `design.md` — or one explicit line that no browser tool
   was available in this session. Never "looks right" without a screenshot; Claude in Chrome tools exist only in the main interactive session.
@@ -176,14 +177,13 @@ code in fenced blocks; prose names only the file or command the user must touch.
 
 ## 9. Close the turn with a choice
 
-Update `<root>/.hyperui/state.md` by direct edit: `phase:` (brief | design | spec | build | review |
-ship | infra | done), `next:` one line, `open:` bullets (pending answers, the setup hint if given),
-`last_updated:` today. Settled decisions → `decisions.md` as `YYYY-MM-DD · decision · why · source`. Root ≠ cwd → the session's first close adds "working on <root>".
+Update `<root>/.hyperui/state.md` by direct edit: `phase:` (brief | design | spec | build | review | ship | infra | done), `next:` one line,
+`open:` bullets (pending answers, the setup hint if given), `last_updated:` today. Settled decisions → `decisions.md` as `YYYY-MM-DD · decision · why · source`. Root ≠ cwd → the session's first close adds "working on <root>".
 
 **Care line.** After any delivered unit of work (design directions, a built task, a spec file, a ship checklist) and BEFORE the choice, ONE compact
 line of what hyperui handled unasked — only what verifiably ran this turn (a test executed, a check made), never a plan or intention, never more than 8, from:
 responsive · a11y (contrast, focus, keyboard) · SEO (titles, canonical, sitemap) · i18n (locales, Intl) · security (input validation, headers, secrets) · tests · performance (images, fonts, CLS) ·
-dark mode · cost (free tier chosen) · sources cited · verified in Chrome (360/768/1280) · heuristics checked (the critique checklist ran on the UI) · version vX.Y.Z (bump + changelog) · deploy verified (live version checked). In the user's language, e.g. "Tuve en cuenta: responsive · a11y · SEO · tests — pide detalle de cualquiera." Any item expands on request.
+dark mode · cost (free tier chosen) · sources cited · verified in Chrome (360/768/1280) · heuristics checked (the critique checklist ran on the UI) · version vX.Y.Z (bump + changelog) · deploy verified (live version checked) · diagram validated (the diagram validator returned 0 errors). In the user's language, e.g. "Tuve en cuenta: responsive · a11y · SEO · tests — pide detalle de cualquiera." Any item expands on request.
 
 **Choice prompt.** Whenever the next step is the user's decision (a unit of work done, a gate, a pick), never end with just "done": one line of what was done, **for UI the §7 "show before you ask" trio (URL · screenshots · what to look at) first**, then ONE choice (it is the turn's question):
 - `AskUserQuestion` available (interactive Claude Code) → one question, 2–4 options, the recommended one first and

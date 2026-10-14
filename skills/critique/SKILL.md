@@ -5,6 +5,7 @@ user-invocable: false
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
+  - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -23,6 +24,9 @@ says what it does to the goal. Fair: what works is named too. Nothing is claimed
 - Reply in the conversation language (the `lang=` in the Skill args); the report file and everything in `.hyperui/` stay in English.
 - Detect the browser tool exactly as `${CLAUDE_PLUGIN_ROOT}/skills/design/references/browser-verify.md` §1: Claude in Chrome →
   Playwright MCP → headless Chrome binary → none. Headless `-p`, evals and subagents never have the first.
+- When `<root>/.hyperui/diagrams/*.json` exist, read them first: they hold the system's components, groups and edges as
+  data (ids, types, labels), so a flow or a dependency you judge is checked against the authored architecture, never inferred
+  from a drawing. A UI that contradicts them (a step the flow does not have, a service the architecture lacks) is a finding.
 - Load the references as you go: `references/checklist.md` (always), `references/repair-model.md` (walk-through),
   `references/conversion-lens.md` (once the goal is known), `references/severity-and-report.md` (rating + template),
   `references/sources.md` (citing). Data views → `${CLAUDE_PLUGIN_ROOT}/skills/viz/references/munzner-procedure.md`.

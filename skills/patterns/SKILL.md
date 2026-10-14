@@ -4,6 +4,7 @@ description: "Architecture and design patterns only when the spec calls for them
 user-invocable: false
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
+  - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -19,8 +20,12 @@ solves**. Each pick is one line of why plus a source. No problem, no pattern —
 2. Read `.hyperui/profile.md` (`archetype`, `stack.*`, `providers.*`, `conversation_language`,
    `tone_notes`) and `.hyperui/state.md`. Never ask for a field that has a value.
 3. Read the spec: `.hyperui/spec/<topic>/02-design.md` (full track) or `.hyperui/spec/<topic>.md`
-   (SDD-lite); also `brief.md` and `decisions.md`. No spec → read the repo (routes, models,
-   HTTP clients, queues) and the user's message. Never re-ask what the spec already says.
+   (SDD-lite); also `brief.md` and `decisions.md`, and every `.hyperui/diagrams/*.json` when present:
+   its `nodes[]` (type, sublabel), `groups[]` (boundaries) and `edges[]` (labels: sync, async, cross-boundary
+   mechanism) are the components, dependencies and flows you scan for triggers — read the JSON, never the
+   drawing. No spec → read the repo (routes, models, HTTP clients, queues) and the user's message. Never
+   re-ask what the spec already says. A pattern that changes the topology (an outbox, a queue, a bulkhead)
+   → say which diagram node/edge it adds so `diagram` can update the view.
 4. Before naming a pattern, open its reference
    (`${CLAUDE_PLUGIN_ROOT}/skills/patterns/references/<file>.md`; if that read is denied, the
    table in §2 and `## Sources` are the contract — do not stop) and, for a claim beyond it,
