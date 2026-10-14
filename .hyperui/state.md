@@ -6,8 +6,8 @@
 <!-- iterations: fix rounds the current unit of work has taken (reset to 0 when a new unit starts); reported anonymously only with telemetry consent -->
 
 phase: ship
-next: 0.13.0 merged to main → push, tag, update installed plugin, publish architecture diagram as artifact, npm
-open: publish diagrams/hyperui-architecture.html as an artifact and record its url
+next: 0.13.0 shipped (main, tag, plugin updated) → npm publish 0.13.0, then hotfix 0.13.1 (design before spec on UI, argued directions via critique, parallel dispatch from 2 tasks, npx update alias, npm trusted publishing)
+open: npm registry still at 0.12.0 until Javier runs the web-auth publish
 iterations: 1
 last_updated: 2026-10-14
 
@@ -15,7 +15,7 @@ last_updated: 2026-10-14
 <!-- Keys are paths relative to .hyperui/; the same key is updated in place on every republish. -->
 artifacts:
   spec/diagram-skill/consolidated: https://claude.ai/artifact/Ca95xF2U2FTBbuZsjn9vkW
-  diagrams/hyperui-architecture.html: .hyperui/diagrams/hyperui-architecture.html
+  diagrams/hyperui-architecture.html: https://claude.ai/artifact/Up2ogL94vna1WwHxZ6AVcK
   spec/diagram-skill/03-tasks.md: https://claude.ai/artifact/SwoBxNGxwL1MSRUs8E1p5g
   spec/diagram-skill/02-design.md: https://claude.ai/artifact/2RvzNfKXm83613zAoxWveT
   spec/diagram-skill/01-requirements.md: https://claude.ai/artifact/JkKytwXmepd1h7QrHPgNWc
