@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// hyperui — one-command installer for the hyperui Claude Code plugin.
+// hyperui — one-command installer/updater for the hyperui Claude Code plugin.
 // Zero dependencies. Node >= 20.
 import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -32,11 +32,12 @@ Usage: npx @tizonai/hyperui [command] [options]
 Commands:
   install      Add the ${MARKETPLACE} marketplace and install ${PLUGIN} (default)
                Re-running it updates both instead.
+  update       Update the ${MARKETPLACE} marketplace, then ${PLUGIN} (restart Claude Code after)
   doctor       Show Claude Code, plugin, Node, Python and OS status
   uninstall    Uninstall ${PLUGIN}, then ask before removing the ${MARKETPLACE} marketplace
 
 Options:
-  --dry-run    Print the claude commands instead of running them (install, uninstall)
+  --dry-run    Print the claude commands instead of running them (install, update, uninstall)
   -v, --version  Print the version
   -h, --help   Show this help
 
@@ -128,6 +129,18 @@ function install() {
   log('  4. Type `/hyperui <what you want to build>` — e.g. `/hyperui a landing page for my bakery`.');
 }
 
+// update = marketplace update, then plugin update. Not installed yet -> install does the right thing.
+function update() {
+  requireClaude();
+  if (!dryRun && (!marketplacePresent() || !pluginInfo())) {
+    log(`${PLUGIN} is not installed yet — running install instead.`);
+    return install();
+  }
+  run(['plugin', 'marketplace', 'update', MARKETPLACE]);
+  run(['plugin', 'update', PLUGIN]);
+  log(dryRun ? 'Dry run finished — nothing was changed.' : 'Updated. Restart Claude Code (quit and open it again) to load the new version.');
+}
+
 async function uninstall() {
   requireClaude();
   if (pluginInfo() || dryRun) {
@@ -186,6 +199,7 @@ async function main() {
   if (flags.has('--version') || flags.has('-v')) return console.log(pkg.version);
   switch (command) {
     case 'install': return install();
+    case 'update': return update();
     case 'doctor': return doctor();
     case 'uninstall': return uninstall();
     default:
