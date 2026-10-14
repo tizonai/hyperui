@@ -1,3 +1,6 @@
+---
+artifact_url: https://claude.ai/artifact/Ca95xF2U2FTBbuZsjn9vkW
+---
 # Spec: Especialista `diagram` v1 — documento consolidado
 
 **Date:** 2026-10-14

@@ -7,13 +7,14 @@
 
 phase: spec
 next: Tasks gate → consolidated Spec: diagram → TASK-001
-open: pending choice: Tasks gate
+open: build in progress (feature/diagram-skill worktree); consolidated spec published
 iterations: 0
 last_updated: 2026-10-08
 
 <!-- artifacts: one line per spec file → the Claude artifact url that shows it (or the fallback .html path). -->
 <!-- Keys are paths relative to .hyperui/; the same key is updated in place on every republish. -->
 artifacts:
+  spec/diagram-skill/consolidated: https://claude.ai/artifact/Ca95xF2U2FTBbuZsjn9vkW
   spec/diagram-skill/03-tasks.md: https://claude.ai/artifact/SwoBxNGxwL1MSRUs8E1p5g
   spec/diagram-skill/02-design.md: https://claude.ai/artifact/2RvzNfKXm83613zAoxWveT
   spec/diagram-skill/01-requirements.md: https://claude.ai/artifact/JkKytwXmepd1h7QrHPgNWc

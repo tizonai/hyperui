@@ -1,0 +1,657 @@
+<title>Spec: Especialista `diagram` v1 — documento consolidado — Spec</title>
+<meta name="description" content="Spec consolidado de la especialista diagram de hyperui: PRD, requisitos, diseño y tareas con trazabilidad.">
+<style>
+  :root {
+    --bg: #f7f6f2; --surface: #ffffff; --surface-2: #efede7; --text: #1b1a17; --muted: #5f5c55;
+    --accent: #b4520f; --accent-ink: #ffffff; --border: #dcd9d0; --code-bg: #f0ede6;
+    --ok: #1e7d4f; --warn: #a66a00; --shadow: 0 1px 2px rgba(20, 18, 12, .06), 0 8px 24px rgba(20, 18, 12, .06);
+    --radius: 12px; --measure: 72ch;
+    --font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141311; --surface: #1d1c19; --surface-2: #26241f; --text: #ece9e1; --muted: #a39f94;
+      --accent: #f0945a; --accent-ink: #1b1a17; --border: #33302a; --code-bg: #23211c;
+      --ok: #5fcf93; --warn: #e5b04a; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141311; --surface: #1d1c19; --surface-2: #26241f; --text: #ece9e1; --muted: #a39f94;
+    --accent: #f0945a; --accent-ink: #1b1a17; --border: #33302a; --code-bg: #23211c;
+    --ok: #5fcf93; --warn: #e5b04a; --shadow: 0 1px 2px rgba(0, 0, 0, .4), 0 8px 24px rgba(0, 0, 0, .35);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-body);
+    font-size: 17px; line-height: 1.6; overflow-x: hidden; -webkit-font-smoothing: antialiased;
+  }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .page { max-width: 1180px; margin: 0 auto; padding: 0 16px 64px; }
+
+  /* Header card */
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px; margin: 24px 0;
+  }
+  .card h1 { margin: 0 0 6px; font-size: clamp(1.5rem, 1.1rem + 1.8vw, 2.25rem); line-height: 1.15; letter-spacing: -.01em; }
+  .card .lede { margin: 0 0 14px; color: var(--muted); }
+  .meta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px 20px; margin: 0; }
+  .meta div { min-width: 0; }
+  .meta dt { font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .meta dd { margin: 2px 0 0; overflow-wrap: anywhere; }
+  .status { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .8rem; font-weight: 600;
+            border: 1px solid var(--border); background: var(--surface-2); text-transform: capitalize; }
+  .status[data-status="approved"] { color: var(--ok); border-color: currentColor; }
+  .status[data-status="draft"], .status[data-status="in review"] { color: var(--warn); border-color: currentColor; }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 16px; }
+  .brand { font-size: .8rem; color: var(--muted); letter-spacing: .04em; }
+  .theme-btn { font: inherit; font-size: .85rem; color: var(--text); background: var(--surface); border: 1px solid var(--border);
+               border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+  .theme-btn:hover { border-color: var(--accent); }
+
+  /* Layout: sticky TOC on wide screens */
+  .layout { display: grid; grid-template-columns: 1fr; gap: 24px; }
+  .toc { position: static; }
+  .toc details { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 14px; }
+  .toc summary { cursor: pointer; font-weight: 600; }
+  .toc ol { margin: 10px 0 4px; padding-left: 20px; }
+  .toc li { margin: 4px 0; }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover, .toc a.active { color: var(--accent); }
+  @media (min-width: 960px) {
+    .layout { grid-template-columns: 240px minmax(0, 1fr); align-items: start; }
+    .toc { position: sticky; top: 16px; max-height: calc(100vh - 32px); overflow: auto; }
+    .toc details { border: 0; background: transparent; padding: 0; }
+    .toc summary { list-style: none; font-size: .75rem; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); cursor: default; }
+    .toc summary::-webkit-details-marker { display: none; }
+    .toc ol { list-style: none; padding-left: 0; border-left: 1px solid var(--border); }
+    .toc li a { display: block; padding: 4px 12px; margin-left: -1px; border-left: 2px solid transparent; font-size: .92rem; }
+    .toc li a.active { border-left-color: var(--accent); }
+  }
+
+  /* Content */
+  .content { min-width: 0; }
+  .content > section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+                       padding: 8px 20px 20px; margin-bottom: 20px; }
+  .content h2 { font-size: 1.45rem; margin: 16px 0 10px; padding-bottom: 8px; border-bottom: 1px solid var(--border); scroll-margin-top: 16px; }
+  .content h3 { font-size: 1.12rem; margin: 22px 0 6px; }
+  .content h4 { font-size: 1rem; margin: 18px 0 4px; color: var(--muted); }
+  .content p, .content ul, .content ol { max-width: var(--measure); }
+  .content li { margin: 4px 0; }
+  .content li > input[type="checkbox"] { margin: 0 8px 0 0; accent-color: var(--accent); vertical-align: -1px; }
+  .content li:has(> input[type="checkbox"]) { list-style: none; margin-left: -20px; }
+  .content blockquote { margin: 12px 0; padding: 8px 16px; border-left: 3px solid var(--accent); background: var(--surface-2); color: var(--muted); border-radius: 0 8px 8px 0; }
+  .content hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
+  code, kbd { font-family: var(--font-mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 5px; }
+  pre { background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; overflow-x: auto; line-height: 1.5; }
+  pre code { background: none; padding: 0; font-size: .85rem; }
+  pre.mermaid { background: var(--surface-2); text-align: center; overflow-x: auto; }
+  pre.mermaid svg { max-width: 100%; height: auto; }
+  .caption { font-size: .9rem; color: var(--muted); text-align: center; margin: -6px 0 14px; }
+  .table-wrap { overflow-x: auto; margin: 12px 0; border: 1px solid var(--border); border-radius: 8px; }
+  table { border-collapse: collapse; width: 100%; font-size: .93rem; }
+  th, td { padding: 8px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+  th { background: var(--surface-2); font-weight: 600; white-space: nowrap; }
+  tr:last-child td { border-bottom: 0; }
+  .na { color: var(--muted); font-style: italic; }
+  .footer { margin-top: 32px; font-size: .85rem; color: var(--muted); text-align: center; }
+
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  @media print {
+    :root { --bg: #fff; --surface: #fff; --shadow: none; }
+    body { font-size: 11pt; }
+    .toc, .theme-btn, .footer { display: none !important; }
+    .layout { display: block; }
+    .card, .content > section { border: 0; box-shadow: none; padding: 0; margin: 0 0 16pt; break-inside: avoid; }
+    .content h2 { break-after: avoid; }
+    pre, table, .table-wrap { break-inside: avoid; }
+    a { color: inherit; text-decoration: none; }
+    a[href^="http"]::after { content: " (" attr(href) ")"; font-size: .85em; color: #555; }
+  }
+</style>
+
+<div class="page">
+  <header class="card">
+    <h1>Spec: Especialista `diagram` v1 — documento consolidado — Spec</h1>
+    <p class="lede">Spec consolidado de la especialista diagram de hyperui: PRD, requisitos, diseño y tareas con trazabilidad.</p>
+    <dl class="meta">
+      <div><dt>Status</dt><dd><span class="status" data-status="approved">approved</span></dd></div>
+      <div><dt>Date</dt><dd>2026-10-14</dd></div>
+      <div><dt>Track</dt><dd>full · consolidated</dd></div>
+      <div><dt>Repo root</dt><dd><code>/Users/tizon/personal/hyperui</code></dd></div>
+      <div><dt>Approvals</dt><dd>PRD ✓ · Requirements ✓ · Design ✓ · Tasks ✓</dd></div>
+    </dl>
+    <div class="toolbar">
+      <span class="brand">hyperui · spec</span>
+      <button class="theme-btn" type="button" id="theme" aria-pressed="false">Dark mode</button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Contents">
+      <details open>
+        <summary>Contents</summary>
+        <ol>
+          <li><a href="#prd">PRD</a></li>
+<li><a href="#requisitos">Requisitos</a></li>
+<li><a href="#diseno">Diseño</a></li>
+<li><a href="#tareas">Tareas</a></li>
+<li><a href="#trazabilidad-uc-req-decision-task">Trazabilidad UC → REQ → decisión → TASK</a></li>
+        </ol>
+      </details>
+    </nav>
+
+    <main class="content">
+      <section id="prd"><h2>PRD</h2>
+<h3>Problem</h3>
+<p>Cuando hyperui planea o explica una arquitectura, hoy solo tiene texto y Mermaid. El texto no se "ve" y Mermaid, con su auto-layout, produce diagramas que se leen mal en cuanto pasan de 6–8 nodos (el propio experimento de archify lo midió: el layout es el producto, no el CSS). Además nada de lo que se dibuja queda en una estructura que otro agente pueda leer después: el diagrama muere en la imagen. Quien usa hyperui para un producto con backend, integraciones o varios servicios necesita diagramas de arquitectura, flujo, secuencia, datos y ciclo de vida que sean bonitos, correctos y reutilizables, sin instalar una dependencia de terceros de 80k estrellas.</p>
+<h3>Goal</h3>
+<p>Que hyperui genere, valide y entregue diagramas interactivos cuya fuente de verdad sea un JSON tipado propio, de modo que las personas los exploren y los agentes los lean.</p>
+<h3>Success signal</h3>
+<ul>
+<li>Un diagrama de la arquitectura de hyperui mismo (skills, scripts, hooks, memoria) generado y validado en una sola pasada, abierto como artifact y legible a 1440 px sin solapes — leído en el smoke de release.</li>
+<li>Tasa de validación: ≥ 90 % de los diagramas generados pasan el validador en ≤ 2 reparaciones — leído en el log del validador durante el smoke y, con consentimiento, en el evento <code>unit_closed skill=diagram iterations</code>.</li>
+<li>Al menos una especialista (<code>spec</code> en el diseño técnico) consume el JSON de un diagrama como entrada en vez del dibujo — verificado en el smoke de <code>spec</code>.</li>
+<li>Tamaño del visor HTML autocontenido &lt; 60 KB sin fuentes embebidas — leído en el gate (<code>check.sh</code>).</li>
+</ul>
+<h3>Users</h3>
+<ul>
+<li><strong>Quien construye con hyperui</strong> (dev/senior): pide "diagrama de la arquitectura", lo explora (foco, alcance), lo exporta a PNG o Mermaid para el README y lo itera.</li>
+<li><strong>Quien no es técnico</strong>: ve el dibujo como artifact para entender qué se va a construir; no toca el JSON.</li>
+<li><strong>Las especialistas de hyperui</strong> (<code>spec</code>, <code>critique</code>, <code>patterns</code>, <code>build</code>): leen el JSON para razonar sobre componentes, dependencias y flujos.</li>
+</ul>
+<h3>Scope</h3>
+<p><strong>In (v1):</strong></p>
+<ul>
+<li>Cinco tipos: arquitectura, flujo (workflow), secuencia, flujo de datos, ciclo de vida.</li>
+<li>IR JSON tipada propia como fuente de verdad; el agente coloca los elementos (layout por criterio, no auto-layout).</li>
+<li>Validador sin dependencias: esquema, solapes, texto que cabe, aristas que no atraviesan nodos, legibilidad a 1440 px; cada error con código, elemento, medida y arreglos posibles; máximo dos reparaciones focalizadas antes de reportar la brecha.</li>
+<li>Visor HTML autocontenido con los tokens de hyperui: claro/oscuro, foco, alcance arriba/abajo, export PNG/SVG; el HTML embebe el JSON.</li>
+<li>Export Mermaid (estructura, sin layout) para READMEs de GitHub.</li>
+<li>Archivos en <code>.hyperui/diagrams/&lt;nombre&gt;.{json,html,mmd}</code> dentro del repo o carpeta del usuario (JSON y HTML se commitean ahí), publicación como artifact, y entrada "Diagrams" en la memoria del proyecto para que las demás especialistas lo usen.</li>
+<li>Atribución MIT a archify en <code>NOTICE</code> por los helpers de geometría y ajuste de texto que se adapten.</li>
+</ul>
+<p><strong>Out (v1):</strong></p>
+<ul>
+<li>Enrutamiento fino de aristas (corredores, ritmo de rutas, cruces mínimos) — v2, cuando la v1 demuestre valor; el validador v1 solo exige que las aristas no atraviesen nodos.</li>
+<li>Evidencia verificada con git (<code>blob/&lt;sha&gt;/archivo#L10</code>) — v2; implica estado del repo y commits.</li>
+<li>Generar el diagrama leyendo código fuente automáticamente ("desde el repo") — v2; en v1 el agente parte de la descripción, el spec o lo que ya sabe del repo, y lo escribe a mano en la IR.</li>
+<li>Fuentes embebidas, iconos de marcas y el validador de 530 KB de archify — no se toman (licencias y tamaño).</li>
+<li>Comparación antes/después (delta) y traducción de etiquetas por locale — después.</li>
+</ul>
+<h3>Use cases</h3>
+<h4>UC-01: Diagrama desde una descripción o un spec</h4>
+<p>El usuario dice "hazme el diagrama de arquitectura de X" o <code>spec</code> lo necesita para el diseño técnico; obtiene un diagrama validado, abierto como artifact, y el JSON guardado.</p>
+<h4>UC-02: Explorar e iterar</h4>
+<p>El usuario abre el visor, enfoca un nodo, ve qué depende de qué (alcance arriba/abajo) y pide un cambio ("agrega la cola y mueve el worker"); el diagrama se actualiza sin que lo no tocado se mueva.</p>
+<h4>UC-03: Exportar para documentación</h4>
+<p>El usuario pide el PNG o el Mermaid para el README o una presentación y lo obtiene con los mismos nombres y colores.</p>
+<h4>UC-04: Un agente lee el diagrama</h4>
+<p><code>spec</code>, <code>critique</code> o <code>patterns</code> abren el JSON y razonan sobre componentes, dependencias y flujos sin interpretar un dibujo.</p>
+<h4>UC-05: Diagrama que no pasa validación</h4>
+<p>El validador devuelve errores con arreglo sugerido; hyperui repara hasta dos veces; si sigue fallando, entrega lo que hay marcando la brecha, nunca un dibujo roto en silencio.</p>
+<h3>Business rules</h3>
+<ul>
+<li>El JSON es la única fuente de verdad; el HTML y el Mermaid se derivan de él y nunca se editan a mano.</li>
+<li>Nada se dibuja que no esté en el JSON; la interacción (foco, alcance) usa solo las aristas autoradas, nunca infiere topología del dibujo.</li>
+<li>Los diagramas (JSON y HTML) se guardan y commitean en el repo o carpeta del usuario, en <code>.hyperui/diagrams/</code>; nunca en el repo de hyperui, porque hyperui se distribuye como plugin.</li>
+<li>La especialista se invoca de las dos formas, como el resto: pidiendo "diagrama" a secas (enrutado por <code>/hyperui</code>) y directamente con <code>/hyperui:diagram</code> para expertos.</li>
+<li>Un diagrama no se entrega sin pasar el validador, salvo con la brecha declarada explícitamente.</li>
+<li>Por vista, el objetivo son 8–12 nodos primarios; más que eso se divide en varios diagramas enlazados.</li>
+<li>Colores y tipografía vienen de los tokens de hyperui (y del <code>design.md</code> del proyecto si existe), no de una paleta propia por diagrama.</li>
+<li>Las etiquetas van en <code>product_languages[0]</code> del perfil; los identificadores en inglés.</li>
+<li>El código adaptado de archify (MIT) conserva su aviso en <code>NOTICE</code> y una copia de su licencia dentro de la skill.</li>
+</ul>
+<h3>Risks and dependencies</h3>
+<ul>
+<li>La calidad del layout depende de la disciplina del agente al colocar (sin auto-layout); se mitiga con reglas de autoría explícitas y el validador.</li>
+<li>Chrome headless para el chequeo visual final no siempre está disponible (CI, otras máquinas); el validador estático debe bastar para aprobar.</li>
+<li>Mantener el visor &lt; 60 KB limita funciones (sin fuentes embebidas, sin librerías).</li>
+<li>Cumplimiento de licencia MIT al adaptar helpers; se audita en el gate.</li>
+</ul>
+<h3>Open questions</h3>
+<ol>
+<li>¿Qué se muestra primero al usuario no técnico: el artifact del diagrama directamente o un resumen de una línea más el enlace? (propuesta en requisitos: el artifact directo con una línea de contexto)</li>
+</ol>
+<h3>Revisions</h3>
+<ul>
+<li>2026-10-08: Resuelta la pregunta sobre dónde viven los diagramas: JSON y HTML se commitean en el repo o carpeta del usuario (<code>.hyperui/diagrams/</code>), nunca en el repo de hyperui, que se distribuye como plugin. Pasa a regla de negocio y se refleja en Scope. (comentario en el artifact)</li>
+<li>2026-10-08: Resuelta la pregunta del nombre: ambos, "diagrama" vía <code>/hyperui</code> y <code>/hyperui:diagram</code> para expertos, como las demás especialistas. Pasa a regla de negocio. (comentario en el artifact)</li>
+<li>2026-10-08: PRD aprobado en la compuerta.</li>
+</ul></section>
+<section id="requisitos"><h2>Requisitos</h2>
+<p>Los requisitos usan notación <strong>EARS</strong> (Easy Approach to Requirements Syntax): cada uno es un par condición–comportamiento (WHEN pasa algo, THE SYSTEM SHALL hace algo observable).</p>
+<h3>Summary</h3>
+<p>La especialista <code>diagram</code> convierte una descripción, un spec o lo que hyperui ya sabe del proyecto en un diagrama cuya fuente de verdad es un JSON tipado propio; un validador sin dependencias lo mide y devuelve reparaciones; un visor HTML autocontenido lo muestra con foco y alcance; se exporta a PNG/SVG/Mermaid; y las demás especialistas leen el JSON. Importa porque hoy la arquitectura solo vive en texto o en Mermaid que se lee mal, y nada queda reutilizable.</p>
+<h3>Scope</h3>
+<p><strong>In scope:</strong> lo listado en el PRD como v1 (cinco tipos, IR, validador, visor, export Mermaid, archivos en <code>.hyperui/diagrams/</code>, artifact, atribución MIT).</p>
+<p><strong>Out of scope:</strong> enrutamiento fino de aristas, evidencia verificada con git, generación automática desde código fuente, fuentes/iconos embebidos, delta antes/después, traducción por locale.</p>
+<p><strong>Affected areas:</strong> <code>skills/diagram/</code> <strong>new</strong> (SKILL.md, <code>schema.json</code>, <code>references/</code>, <code>LICENSE-archify</code>) · <code>scripts/diagram-check.mjs</code> <strong>new</strong> (validador + enrutador + render) · <code>templates/diagram/viewer.html</code> <strong>new</strong> · <code>SKILL.md</code> raíz (fila de enrutamiento, compuertas, línea de cuidado) · <code>skills/spec/SKILL.md</code> (fase de diseño usa <code>diagram</code>) · <code>skills/critique/SKILL.md</code>, <code>skills/patterns/SKILL.md</code> (leen el JSON) · <code>scripts/check.sh</code> (lint de la skill y tamaño del visor) · <code>templates/hyperui/design.md</code> (sección <code>## Diagrams</code>) · <code>NOTICE</code> · <code>README.md</code>, <code>docs/architecture.md</code>, <code>CHANGELOG.md</code>, manifests.</p>
+<h3>Requirements</h3>
+<h4>REQ-001: Generar un diagrama desde una descripción o un spec</h4>
+<p><strong>User story:</strong> Como quien construye con hyperui, quiero pedir "el diagrama de arquitectura de X" y obtenerlo validado, para ver y compartir la arquitectura sin dibujar a mano.</p>
+<p>WHEN el usuario pide un diagrama (o <code>spec</code> lo necesita en la fase de diseño) y nombra o se infiere el tipo (arquitectura, flujo, secuencia, datos, ciclo de vida)</p>
+<p>THE SYSTEM SHALL escribir la IR JSON en <code>.hyperui/diagrams/&lt;nombre&gt;.json</code>, validarla, renderizar <code>.hyperui/diagrams/&lt;nombre&gt;.html</code> y publicarla como artifact en el mismo turno.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given un perfil con <code>product_languages: [es]</code> · When el usuario dice "hazme el diagrama de arquitectura de hyperui" · Then existen <code>&lt;nombre&gt;.json</code> y <code>&lt;nombre&gt;.html</code>, el validador reporta 0 errores, y la respuesta trae el enlace del artifact (o la ruta del HTML en headless).</li>
+<li><input type="checkbox" disabled> Given la fase de diseño de <code>spec</code> para un cambio multi-servicio · When <code>spec</code> propone el set de diagramas · Then al menos el de arquitectura se produce con <code>diagram</code> y su JSON queda referenciado en <code>02-design.md</code>.</li>
+<li><input type="checkbox" disabled> Given un tipo no reconocible en la petición · When se pide el diagrama · Then el sistema elige el tipo por señales (componentes → arquitectura; pasos → flujo; mensajes entre actores → secuencia; etapas de datos → datos; estados → ciclo de vida) y lo dice en una línea sin preguntar.</li>
+<li><input type="checkbox" disabled> Build passes: <code>bash scripts/check.sh</code></li>
+<li><input type="checkbox" disabled> Tests pass: <code>node scripts/diagram-check.mjs --self-test</code></li>
+</ul>
+<h4>REQ-002: La IR JSON es la fuente de verdad</h4>
+<p><strong>User story:</strong> Como agente de hyperui, quiero que el diagrama exista como datos tipados, para razonar sobre componentes y dependencias sin interpretar un dibujo.</p>
+<p>THE SYSTEM SHALL guardar cada diagrama, en el repo o carpeta del usuario (<code>.hyperui/diagrams/</code>, nunca en el repo del plugin), como un documento JSON con <code>schema_version</code>, <code>diagram_type</code> (<code>architecture|flow|sequence|dataflow|lifecycle</code>), <code>meta{title, lang}</code>, <code>nodes[]</code>, <code>groups[]</code>, <code>edges[]</code> y, para secuencia, <code>participants[]</code>/<code>messages[]</code>, rechazando campos desconocidos; el HTML y el Mermaid se derivan de él.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given un JSON con un campo no definido en el esquema · When se valida · Then el validador falla con código <code>schema/unknown-property</code>, el elemento exacto y el arreglo "remove unsupported property X".</li>
+<li><input type="checkbox" disabled> Given un <code>.html</code> generado · When se abre su código · Then contiene el JSON completo embebido en <code>&lt;script type="application/json" id="diagram-ir"&gt;</code> idéntico al <code>.json</code>.</li>
+<li><input type="checkbox" disabled> Given el <code>.json</code> de un diagrama · When <code>critique</code> o <code>patterns</code> lo leen · Then pueden listar nodos, grupos y aristas con etiquetas sin abrir el HTML.</li>
+</ul>
+<h4>REQ-003: El agente coloca, el validador mide</h4>
+<p><strong>User story:</strong> Como usuario, quiero diagramas que se lean a primera vista, para no tener que descifrar un auto-layout.</p>
+<p>WHEN el agente escribe la IR</p>
+<p>THE SYSTEM SHALL exigir una posición en cuadrícula (<code>row</code>, <code>col</code>) por nodo y, al validar, comprobar: solapes o separación &lt; 8 px entre nodos, texto que no cabe en su caja al tamaño mínimo legible, aristas que atraviesan un nodo ajeno (margen 2 px), aristas que no salen/entran por el lado indicado, etiquetas que pisan nodos u otras etiquetas, elementos fuera del lienzo, y texto proyectado &lt; 6 px a 1440 px de ancho.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given dos nodos en la misma celda · When se valida · Then error <code>layout/cell-collision</code> con los dos ids y la celda.</li>
+<li><input type="checkbox" disabled> Given un nodo con etiqueta más ancha que su caja · When se valida · Then error <code>layout/text-fit</code> con el ancho medido y el ancho requerido, y el arreglo "widen to N px or shorten label".</li>
+<li><input type="checkbox" disabled> Given una arista cuya ruta cruza un nodo ajeno · When se valida · Then error <code>clean-flow/edge-through-node</code> con el id del nodo y el segmento.</li>
+<li><input type="checkbox" disabled> Given un diagrama válido · When se valida · Then salida <code>0 errors</code> y código de salida 0 en &lt; 1 s para ≤ 40 nodos.</li>
+</ul>
+<h4>REQ-004: Cada error trae su arreglo y el bucle de reparación es acotado</h4>
+<p><strong>User story:</strong> Como usuario, quiero que hyperui repare el diagrama solo, pero que no se quede dando vueltas.</p>
+<p>IF el validador devuelve errores THEN THE SYSTEM SHALL emitir cada uno con <code>{code, severity, message, subject{collection,index,id,from,to}, evidence{px,points,bounds}, supportedFixes[]}</code>, aplicar como máximo dos reparaciones focalizadas (solo los elementos nombrados) y, si persisten errores, entregar el diagrama marcando la brecha en la respuesta y en <code>design.md</code>, nunca un dibujo roto en silencio.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given una IR con 3 errores · When el agente repara · Then tras ≤ 2 pasadas la IR valida, o la respuesta lista los errores restantes con su código.</li>
+<li><input type="checkbox" disabled> Given una reparación · When se compara la IR antes y después · Then solo cambiaron los elementos nombrados en <code>subject</code> (los demás nodos conservan <code>row/col</code>).</li>
+<li><input type="checkbox" disabled> Given la salida del validador · When se parsea · Then es JSON válido por línea (<code>--json</code>) y texto legible por defecto.</li>
+</ul>
+<h4>REQ-005: Visor autocontenido con foco, alcance y exportación</h4>
+<p><strong>User story:</strong> Como usuario, quiero explorar el diagrama (enfocar un nodo, ver qué depende de qué) y exportarlo, sin instalar nada.</p>
+<p>WHEN se renderiza un diagrama</p>
+<p>THE SYSTEM SHALL producir un único archivo HTML con un SVG inline, colores solo por variables CSS (claro/oscuro según <code>prefers-color-scheme</code> y <code>data-theme</code>), foco por clic, alcance aguas arriba/abajo usando solo las aristas de la IR, enlace profundo <code>#focus=&lt;id&gt;</code>, exportación PNG y SVG, leyenda automática de los tipos presentes, y un tamaño &lt; 60 KB sin fuentes embebidas.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given el HTML generado · When se mide · Then <code>wc -c</code> &lt; 61 440 y <code>check.sh</code> falla si lo supera.</li>
+<li><input type="checkbox" disabled> Given el visor abierto · When se hace clic en un nodo · Then se resaltan ese nodo, sus vecinos directos y, con "aguas abajo", todo lo alcanzable por aristas autoradas; nada que no esté en la IR se resalta.</li>
+<li><input type="checkbox" disabled> Given el visor · When se pulsa "PNG" · Then se descarga una imagen a 2× con el mismo tema visible.</li>
+<li><input type="checkbox" disabled> Given <code>prefers-color-scheme: dark</code> · When se abre · Then fondo, texto y aristas usan los tokens oscuros; contraste AA en etiquetas.</li>
+<li><input type="checkbox" disabled> Given una sesión interactiva con navegador · When se publica · Then la captura de evidencia del visor a 1280 queda en <code>design.md</code> (flujo browser-verify existente).</li>
+</ul>
+<h4>REQ-006: Tokens de hyperui y del proyecto</h4>
+<p><strong>User story:</strong> Como dueño de la marca, quiero que los diagramas usen mis colores y tipografía, para que parezcan parte del producto.</p>
+<p>THE SYSTEM SHALL tomar colores y tipografía de los tokens de hyperui y, si <code>.hyperui/design.md</code> define paleta/fuentes, de ahí; nunca de una paleta propia por diagrama; los siete tipos de componente (<code>frontend|backend|database|cloud|security|messagebus|external</code>) mapean a tokens, no a hex sueltos.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given un proyecto con <code>design.palette.accent</code> definido · When se renderiza · Then el acento del visor es ese valor (variable CSS), sin hex literal en el SVG.</li>
+<li><input type="checkbox" disabled> Given un proyecto sin <code>design.md</code> · When se renderiza · Then se usan los tokens por defecto de hyperui (graphite + emerald).</li>
+</ul>
+<h4>REQ-007: Exportación Mermaid y camino rápido</h4>
+<p><strong>User story:</strong> Como usuario, quiero pegar el diagrama en el README de GitHub.</p>
+<p>WHEN el usuario pide Mermaid, o el destino es README/PR/chat, o el diagrama tiene ≤ 6 nodos sin grupos</p>
+<p>THE SYSTEM SHALL exportar la estructura de la IR a <code>.hyperui/diagrams/&lt;nombre&gt;.mmd</code> (sin layout, sin validar) y, en el camino rápido, ofrecer el bloque Mermaid inline además de la IR; Mermaid pegado por el usuario se re-autora a la IR, nunca se valida ni se "embellece".</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given una IR de arquitectura · When se exporta · Then el <code>.mmd</code> es <code>flowchart</code> válido con un nodo por <code>nodes[]</code>, un <code>subgraph</code> por grupo y una arista por <code>edges[]</code> con su etiqueta.</li>
+<li><input type="checkbox" disabled> Given una IR de secuencia · When se exporta · Then el <code>.mmd</code> es <code>sequenceDiagram</code> con participantes y mensajes en orden.</li>
+<li><input type="checkbox" disabled> Given un bloque Mermaid pegado por el usuario · When pide "hazlo bonito" · Then se convierte a IR y pasa por el validador; el Mermaid original no se modifica.</li>
+</ul>
+<h4>REQ-008: Iterar sin mover lo que no se tocó</h4>
+<p><strong>User story:</strong> Como usuario, quiero pedir cambios puntuales sin que el diagrama entero se reacomode.</p>
+<p>WHEN el usuario pide un cambio sobre un diagrama existente</p>
+<p>THE SYSTEM SHALL editar la IR existente (añadir, quitar o mover solo lo nombrado), revalidar y republicar el artifact en la <strong>misma URL</strong>, conservando <code>row/col</code> de los nodos no mencionados.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given un diagrama publicado · When el usuario dice "agrega la cola entre API y worker" · Then el JSON gana un nodo y dos aristas, los demás nodos conservan <code>row/col</code>, y el artifact se republica en la misma URL.</li>
+<li><input type="checkbox" disabled> Given <code>state.md</code> · When se republica · Then <code>artifacts:</code> tiene una sola entrada para ese diagrama.</li>
+</ul>
+<h4>REQ-009: Reglas de autoría del agente</h4>
+<p><strong>User story:</strong> Como hyperui, quiero reglas explícitas de colocación, para que el layout sea bueno sin auto-layout.</p>
+<p>THE SYSTEM SHALL seguir, al escribir la IR, estas reglas: camino principal primero (izquierda → derecha o arriba → abajo según el tipo), ramas y almacenes directamente arriba o abajo de su dueño, retornos por un corredor libre, 8–12 nodos primarios por vista (más → dividir en diagramas enlazados), etiquetas de arista cortas (≤ 24 caracteres) y un solo acento de énfasis por vista.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given una descripción con 20 componentes · When se genera · Then el resultado son ≥ 2 diagramas enlazados (<code>meta.related[]</code>) con ≤ 12 nodos cada uno, y la respuesta lo explica en una línea.</li>
+<li><input type="checkbox" disabled> Given la skill · When se lee · Then las reglas están en <code>skills/diagram/references/authoring.md</code> con las fórmulas de espaciado medidas (separación ≥ 8 px, etiqueta ≥ 6,5 px × caracteres + 21).</li>
+</ul>
+<h4>REQ-010: Integración con el resto de hyperui</h4>
+<p><strong>User story:</strong> Como usuario, quiero que el diagrama aparezca donde hace falta sin pedirlo dos veces.</p>
+<p>WHEN <code>spec</code> llega a la fase de diseño de un cambio multi-página, backend+UI o multi-servicio</p>
+<p>THE SYSTEM SHALL producir el diagrama de arquitectura con <code>diagram</code> (y secuencia para el camino feliz cuando hay backend), enlazar los JSON en <code>02-design.md</code> y registrar los diagramas en <code>design.md</code> bajo <code>## Diagrams</code>; <code>critique</code> y <code>patterns</code> leen esos JSON cuando existen.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given un spec multi-servicio · When se escribe <code>02-design.md</code> · Then contiene la ruta de ≥ 1 <code>.hyperui/diagrams/*.json</code> y el artifact del diagrama está enlazado.</li>
+<li><input type="checkbox" disabled> Given <code>/hyperui</code> · When el usuario escribe "diagrama", "arquitectura", "flujo", "secuencia" o "ciclo de vida" en cualquier idioma · Then la fila de enrutamiento manda a <code>diagram</code>.</li>
+<li><input type="checkbox" disabled> Given la línea de cuidado · When se entrega un diagrama · Then incluye <code>diagram validated</code> solo si el validador pasó.</li>
+</ul>
+<h4>REQ-011: Atribución y licencia</h4>
+<p>THE SYSTEM SHALL incluir en <code>NOTICE</code> la línea de atribución a Archify (MIT, commit <code>bb990b1</code>) y una copia de su licencia en <code>skills/diagram/LICENSE-archify</code>, y cada función adaptada lleva una cabecera <code>// Adapted from archify &lt;path&gt;@bb990b1 (MIT)</code>; no se incluyen la fuente embebida, los logos de marcas ni el validador generado de archify.</p>
+<p><strong>Acceptance:</strong></p>
+<ul>
+<li><input type="checkbox" disabled> Given el repo · When se corre <code>grep -n "Archify" NOTICE</code> · Then aparece la línea; y <code>skills/diagram/LICENSE-archify</code> existe.</li>
+<li><input type="checkbox" disabled> Given <code>scripts/diagram-check.mjs</code> · When se buscan funciones adaptadas · Then cada una tiene la cabecera de origen.</li>
+</ul>
+<h3>Non-functional requirements</h3>
+<ul>
+<li>THE SYSTEM SHALL correr el validador con Node ≥ 20 sin dependencias de npm (<code>scripts/diagram-check.mjs</code> solo usa módulos nativos).</li>
+<li>THE SYSTEM SHALL mantener accesible el visor: <code>role</code>/<code>aria-label</code> en nodos, navegación por teclado del foco, contraste AA en ambos temas.</li>
+<li>THE SYSTEM SHALL escribir las etiquetas en <code>product_languages[0]</code> y los identificadores en inglés.</li>
+<li>THE SYSTEM SHALL funcionar en headless (<code>-p</code>, evals): sin Artifact tool, el <code>.html</code> queda en <code>.hyperui/diagrams/</code> y se da la ruta.</li>
+<li>THE SYSTEM SHALL pasar <code>scripts/check.sh</code> (lints de especialista) y añadir dos lints: tamaño del visor &lt; 60 KB y presencia de <code>LICENSE-archify</code>.</li>
+</ul>
+<h3>Open questions</h3>
+<p>Ninguna que bloquee el diseño; las tres del PRD quedan resueltas con las propuestas: los diagramas se commitean (JSON + HTML) con el resto de <code>.hyperui/</code>; el no-tech ve el artifact directo con una línea de contexto; existe <code>/hyperui:diagram</code> para expertos además del enrutado por <code>/hyperui</code>.</p>
+<h3>Traceability to the PRD</h3>
+<div class="table-wrap"><table><thead><tr><th>Use case</th><th>Requirements that cover it</th></tr></thead><tbody><tr><td>UC-01 (diagrama desde descripción o spec)</td><td>REQ-001 (generar), REQ-002 (IR fuente de verdad), REQ-003 (colocar y medir), REQ-006 (tokens), REQ-009 (autoría), REQ-010 (integración)</td></tr><tr><td>UC-02 (explorar e iterar)</td><td>REQ-005 (visor), REQ-008 (iterar sin mover)</td></tr><tr><td>UC-03 (exportar)</td><td>REQ-005 (PNG/SVG), REQ-007 (Mermaid)</td></tr><tr><td>UC-04 (un agente lee el diagrama)</td><td>REQ-002 (IR), REQ-010 (integración)</td></tr><tr><td>UC-05 (no pasa validación)</td><td>REQ-004 (arreglos y bucle acotado)</td></tr></tbody></table></div>
+<h3>Revisions</h3></section>
+<section id="diseno"><h2>Diseño</h2>
+<h3>Summary</h3>
+<p>Cambio <strong>multi-componente dentro del plugin</strong> (shape: multi-page de herramienta + un pipeline de datos, sin backend): una skill nueva (<code>skills/diagram/</code>), un script Node único que valida, enruta y renderiza (<code>scripts/diagram-check.mjs</code>), una plantilla de visor (<code>templates/diagram/viewer.html</code>), y cableado en la skill raíz, <code>spec</code>, <code>critique</code>, <code>patterns</code>, <code>check.sh</code> y <code>NOTICE</code>. Set de diagramas confirmado para este diseño: flowchart de componentes del pipeline, secuencia del camino feliz (pedir → IR → validar → render → artifact) y secuencia del fallo (validación con reparación acotada), más el esquema de la IR como tabla. Método base: <code>docs/research/archify-diagram-method.md</code> (MIT).</p>
+<h3>Stack</h3>
+<div class="table-wrap"><table><thead><tr><th>Decision</th><th>Pick</th><th>Why (one line)</th><th>Source</th></tr></thead><tbody><tr><td>Lenguaje del script</td><td>JavaScript (Node ≥ 20, ESM <code>.mjs</code>)</td><td>el plugin ya exige Node ≥ 20 y no tiene toolchain de TS; cero dependencias de npm</td><td><code>README.md</code> Requirements, <code>package.json</code> <code>engines</code></td></tr><tr><td>Validación de esquema</td><td>chequeo estructural a mano</td><td>evita ajv (530 KB) y cualquier instalación en runtime</td><td>research §6</td></tr><tr><td>Render</td><td>SVG inline generado por el mismo script + plantilla HTML</td><td>un solo archivo, sin librerías, &lt; 60 KB</td><td>research §4</td></tr><tr><td>Estilo</td><td>variables CSS mapeadas a tokens de hyperui / <code>design.md</code></td><td>claro/oscuro y marca del proyecto sin hex sueltos</td><td>REQ-006</td></tr><tr><td>Export Mermaid</td><td>función del mismo script</td><td>estructura sin layout para READMEs</td><td>REQ-007</td></tr><tr><td>Hosting</td><td>N/A</td><td>artefactos locales + artifact de Claude</td><td>—</td></tr></tbody></table></div>
+<h3>Affected components</h3>
+<div class="table-wrap"><table><thead><tr><th>Component</th><th>Path</th><th>Kind</th><th>Change</th></tr></thead><tbody><tr><td>Skill <code>diagram</code></td><td><code>skills/diagram/SKILL.md</code></td><td>skill</td><td><strong>new</strong></td></tr><tr><td>Reglas de autoría</td><td><code>skills/diagram/references/authoring.md</code></td><td>docs</td><td><strong>new</strong></td></tr><tr><td>Catálogo de códigos de error</td><td><code>skills/diagram/references/diagnostics.md</code></td><td>docs</td><td><strong>new</strong></td></tr><tr><td>Esquema de la IR</td><td><code>skills/diagram/schema.json</code></td><td>data</td><td><strong>new</strong></td></tr><tr><td>Ejemplos de IR</td><td><code>skills/diagram/references/examples/{architecture,flow,sequence,dataflow,lifecycle}.json</code></td><td>data</td><td><strong>new</strong></td></tr><tr><td>Licencia archify</td><td><code>skills/diagram/LICENSE-archify</code></td><td>legal</td><td><strong>new</strong></td></tr><tr><td>Validador + enrutador + render + export</td><td><code>scripts/diagram-check.mjs</code></td><td>script</td><td><strong>new</strong></td></tr><tr><td>Plantilla del visor</td><td><code>templates/diagram/viewer.html</code></td><td>template</td><td><strong>new</strong></td></tr><tr><td>Skill raíz</td><td><code>SKILL.md</code></td><td>skill</td><td>modified (fila de enrutamiento, gate, línea de cuidado)</td></tr><tr><td><code>spec</code></td><td><code>skills/spec/SKILL.md</code>, <code>skills/spec/references/design-template.md</code></td><td>skill</td><td>modified (fase de diseño usa <code>diagram</code>)</td></tr><tr><td><code>critique</code>, <code>patterns</code></td><td><code>skills/critique/SKILL.md</code>, <code>skills/patterns/SKILL.md</code></td><td>skill</td><td>modified (leen <code>.hyperui/diagrams/*.json</code>)</td></tr><tr><td>Gate</td><td><code>scripts/check.sh</code></td><td>script</td><td>modified (lints: tamaño del visor, <code>LICENSE-archify</code>, <code>--self-test</code>)</td></tr><tr><td>Permisos</td><td><code>scripts/permit.sh</code>, <code>allowed-tools</code> de las skills</td><td>script</td><td>modified (pre-aprobar <code>diagram-check.mjs</code>)</td></tr><tr><td>Memoria</td><td><code>templates/hyperui/design.md</code></td><td>template</td><td>modified (<code>## Diagrams</code>)</td></tr><tr><td>Atribución</td><td><code>NOTICE</code></td><td>legal</td><td>modified</td></tr><tr><td>Docs</td><td><code>README.md</code>, <code>docs/architecture.md</code>, <code>CHANGELOG.md</code>, manifests</td><td>docs</td><td>modified (0.13.0)</td></tr></tbody></table></div>
+<h3>Architecture</h3>
+<h4>Execution mode</h4>
+<p>Herramienta local: el agente escribe la IR; <code>node scripts/diagram-check.mjs</code> corre en el proyecto del usuario (ruta absoluta del plugin, como <code>profile.sh</code>) y escribe los artefactos en <code>&lt;root&gt;/.hyperui/diagrams/</code>. Sin servidor, sin red. En headless el <code>.html</code> se entrega por ruta; en interactivo se publica como artifact.</p>
+<h4>El script: un archivo, cuatro subcomandos</h4>
+<pre><code class="language-text">node scripts/diagram-check.mjs validate &lt;ir.json&gt; [--json]          # esquema + geometría → diagnósticos, exit 0/1
+node scripts/diagram-check.mjs render   &lt;ir.json&gt; [--out &lt;dir&gt;]     # valida y escribe &lt;name&gt;.html (+ .svg opcional)
+node scripts/diagram-check.mjs mermaid  &lt;ir.json&gt; [--out &lt;dir&gt;]     # escribe &lt;name&gt;.mmd
+node scripts/diagram-check.mjs --self-test                          # fixtures de references/examples + casos de error</code></pre>
+<p>Módulos internos (en el mismo archivo, secciones marcadas): <code>schema</code> (estructura, enums, ids, endpoints), <code>layout</code> (celda → px), <code>geometry</code> (adaptado de archify: <code>rectsOverlap</code>, <code>segmentIntersectsRect</code>, <code>properSegmentIntersection</code>, <code>segmentRectClearance</code>, <code>textUnits</code>, <code>fittedFontSize</code>), <code>router</code> (recto → L → Z → Dijkstra en malla ortogonal dispersa; port spread 16/14 px), <code>checks</code> (orden de reparación §Validación), <code>render</code> (SVG + plantilla), <code>mermaid</code>, <code>diagnostics</code> (forma común).</p>
+<h4>La IR (<code>skills/diagram/schema.json</code>)</h4>
+<p>Un documento por diagrama; campos desconocidos rechazados en todos los niveles.</p>
+<div class="table-wrap"><table><thead><tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr></thead><tbody><tr><td><code>schema_version</code></td><td><code>1</code></td><td>entero</td></tr><tr><td><code>diagram_type</code></td><td>`architecture\</td><td>flow\</td><td>sequence\</td><td>dataflow\</td><td>lifecycle`</td><td>define qué arreglos son obligatorios</td></tr><tr><td><code>meta</code></td><td><code>{title, lang, description?, related?: [path], tokens?: {accent?, font?}}</code></td><td><code>lang</code> = <code>product_languages[0]</code></td></tr><tr><td><code>layout</code></td><td><code>{cols ≤ 12, cellW ≥ 40 (def 140), cellH ≥ 24 (def 64), gapX (def 48), gapY (def 56), origin [x,y] (def [40,80])}</code></td><td>cuadrícula; sin <code>pos</code> libre en v1</td></tr><tr><td><code>nodes[]</code></td><td><code>{id, type, label, sublabel?, row, col, w?, h?, variant?}</code></td><td>`type ∈ frontend\</td><td>backend\</td><td>database\</td><td>cloud\</td><td>security\</td><td>messagebus\</td><td>external\</td><td>actor\</td><td>state<code>; </code>id<code> </code>^[a-zA-Z][a-zA-Z0-9_-]*$`</td></tr><tr><td><code>groups[]</code></td><td>`{id, label, kind: boundary\</td><td>lane\</td><td>stage, wraps[ids], pad?}`</td><td>lanes/stages dan filas/columnas lógicas en flow/dataflow/lifecycle</td></tr><tr><td><code>edges[]</code></td><td>`{id?, from, to, label?, variant?: default\</td><td>emphasis\</td><td>security\</td><td>dashed\</td><td>return, fromSide?, toSide?, via?: [[x,y]]}`</td><td><code>via</code> solo para defectos medidos</td></tr><tr><td><code>participants[]</code>, <code>messages[]</code></td><td>solo <code>sequence</code>: <code>{id,label,type}</code> / <code>{from,to,label,variant?,note?}</code></td><td>el índice del mensaje es la y; columnas fijas</td></tr><tr><td><code>states[]</code>, <code>transitions[]</code></td><td>solo <code>lifecycle</code>: alias de <code>nodes</code>/<code>edges</code> con `type ∈ start\</td><td>active\</td><td>waiting\</td><td>decision\</td><td>success\</td><td>failure`</td><td>render con <code>step</code> "01"</td></tr></tbody></table></div>
+<p><code>lifecycle</code> y <code>dataflow</code> se validan con las mismas reglas geométricas que <code>architecture</code>; <code>flow</code> añade <code>mainPath[ids]</code> opcional para énfasis automático. Un esquema por tipo se expresa como "campos requeridos / permitidos" dentro de <code>schema.json</code>.</p>
+<h4>Validación (orden de reparación, cada regla con código)</h4>
+<div class="table-wrap"><table><thead><tr><th>#</th><th>Código</th><th>Falla cuando</th><th>Arreglo sugerido</th></tr></thead><tbody><tr><td>1</td><td><code>schema/*</code></td><td>campo desconocido, enum, id inválido, endpoint inexistente, ids duplicados</td><td>remove / choose one of / fix id</td></tr><tr><td>2</td><td><code>layout/cell-collision</code>, <code>layout/out-of-grid</code></td><td>dos nodos en la misma celda; <code>col ≥ cols</code></td><td>move <code>&lt;id&gt;</code> to row r col c</td></tr><tr><td>3</td><td><code>layout/node-overlap</code></td><td>cajas a &lt; 8 px</td><td>separate by N px</td></tr><tr><td>4</td><td><code>layout/text-fit</code></td><td>ancho requerido (<code>0.6·font·units + 8</code>) &gt; caja</td><td>widen to N or shorten label</td></tr><tr><td>5</td><td><code>clean-flow/edge-through-node</code></td><td>segmento a ≤ 2 px de un nodo ajeno</td><td>reroute via / move <code>&lt;id&gt;</code></td></tr><tr><td>6</td><td><code>clean-flow/endpoint-side-direction</code></td><td>primer/último segmento no sale/entra por el lado fijado</td><td>change <code>fromSide</code>/<code>toSide</code></td></tr><tr><td>7</td><td><code>composition/proper-crossing</code> (warning)</td><td>dos aristas no relacionadas forman una X</td><td>reorder rows / swap cols</td></tr><tr><td>8</td><td><code>composition/label-overlap</code>, <code>composition/label-gap</code></td><td>etiqueta pisa nodo/etiqueta; hueco &lt; <code>6.5·units + 21</code></td><td>labelAt / increase gap</td></tr><tr><td>9</td><td><code>layout/out-of-canvas</code></td><td>elemento fuera del viewBox</td><td>grow viewBox / move</td></tr><tr><td>10</td><td><code>readability/projected-text</code></td><td>texto proyectado &lt; 6 px a 1440 px</td><td>split diagram / enlarge</td></tr><tr><td>11</td><td><code>budget/too-many-nodes</code> (warning)</td><td>&gt; 12 nodos primarios</td><td>split into related diagrams</td></tr></tbody></table></div>
+<p>Forma del diagnóstico: <code>{code, severity: error|warning, message, subject{collection,index,id,from,to}, evidence{px,points,bounds}, supportedFixes[]}</code>; <code>--json</code> emite una línea JSON por diagnóstico; texto legible por defecto. Exit 1 con cualquier <code>error</code>.</p>
+<h4>El visor (<code>templates/diagram/viewer.html</code>, &lt; 60 KB)</h4>
+<p>Marcadores <code>/* HYPERUI:TITLE */</code>, <code>/* HYPERUI:TOKENS */</code>, <code>/* HYPERUI:SVG */</code>, <code>/* HYPERUI:IR */</code>, <code>/* HYPERUI:LEGEND */</code>. Contiene: título + <code>&lt;desc&gt;</code>; tokens CSS (<code>--bg --surface --text --muted --accent --border</code> + <code>--&lt;type&gt;-fill/-stroke --arrow --mask</code>) con bloque <code>prefers-color-scheme</code> guardado por <code>:root:not([data-theme="light"])</code> y <code>:root[data-theme="dark"]</code>, override desde <code>meta.tokens</code>; SVG con <code>&lt;defs&gt;</code> (markers por variante, patrón de rejilla), orden de dibujo grupos → aristas → nodos → leyenda; cada nodo <code>&lt;g data-node-id data-node-type tabindex="0" role="button" aria-label&gt;</code> con <code>rect.c-mask</code> opaco; cada arista <code>&lt;path data-edge-from data-edge-to data-edge-label data-points&gt;</code> con esquinas <code>Q</code> y halo en cruces; <code>&lt;script type="application/json" id="diagram-ir"&gt;</code> con la IR completa; JS (~300 líneas): foco por clic/teclado, vecinos, alcance aguas arriba/abajo por BFS sobre <code>data-edge-*</code>, <code>#focus=&lt;id&gt;</code> y <code>#reach=up|down</code>, export PNG 2× (serialize → canvas → toBlob) y SVG, toggle de tema, leyenda automática. Sin fuentes embebidas (stack del sistema + <code>meta.tokens.font</code> si existe).</p>
+<h4>Mermaid</h4>
+<p><code>architecture|flow|dataflow</code> → <code>flowchart LR</code> (nodos con etiqueta, <code>subgraph</code> por grupo, <code>--&gt;|label|</code>); <code>sequence</code> → <code>sequenceDiagram</code>; <code>lifecycle</code> → <code>stateDiagram-v2</code>. Sin estilos. Mermaid pegado por el usuario se parsea solo para extraer nodos/aristas hacia la IR.</p>
+<h4>Integración</h4>
+<ul>
+<li>Skill raíz: fila de enrutamiento (<code>diagrama, arquitectura, flujo, secuencia, ciclo de vida, "cómo se conecta"</code>), gate "un diagrama no se entrega sin <code>0 errors</code> o brecha declarada", vocabulario de cuidado <code>diagram validated</code>.</li>
+<li><code>spec</code> fase de diseño: para shapes backend+UI / multi-servicio / nueva plataforma, el diagrama de contenedores y la secuencia del camino feliz se producen con <code>diagram</code> (IR en <code>.hyperui/diagrams/</code>, enlace en <code>02-design.md</code>); el <code>flowchart</code>/<code>stateDiagram</code> Mermaid inline sigue para casos chicos (≤ 6 nodos) según REQ-007.</li>
+<li><code>critique</code> y <code>patterns</code>: si existe <code>.hyperui/diagrams/*.json</code>, lo leen antes de opinar sobre arquitectura.</li>
+<li><code>design.md</code>: sección <code>## Diagrams</code> con <code>nombre · tipo · ruta json · artifact url · validado (fecha)</code>.</li>
+<li>Permisos: <code>permit.sh</code> pre-aprueba <code>node &lt;root&gt;/scripts/diagram-check.mjs …</code>; <code>allowed-tools</code> de <code>diagram</code>, <code>spec</code>, <code>critique</code>, <code>patterns</code> incluyen esa línea.</li>
+</ul>
+<h4>Screens and content</h4>
+<p class="na">N/A — no hay pantallas de producto; la única UI es el visor (descrito arriba) en <code>meta.lang</code>.</p>
+<h4>API contract</h4>
+<p class="na">N/A — herramienta local, sin API.</p>
+<h4>Data model</h4>
+<p class="na">N/A — sin base de datos; los artefactos son archivos en <code>.hyperui/diagrams/</code> del repo del usuario.</p>
+<h4>Auth and personal data</h4>
+<p class="na">N/A — sin usuarios ni datos personales; la IR puede contener nombres de componentes del proyecto, que ya viven en el repo del usuario. Telemetría: solo <code>unit_closed skill=diagram iterations</code> con consentimiento.</p>
+<h4>Errors</h4>
+<p>Validación: diagnósticos con arreglo (tabla). Render: si el script falla por IR inválida no escribe HTML (fail-closed). Visor: si el JSON embebido no parsea, muestra un aviso en texto y el SVG estático sigue visible. Agente: tras 2 reparaciones, entrega con brecha declarada en la respuesta y en <code>design.md</code>.</p>
+<h4>Configuration and secrets</h4>
+<p>Ninguna variable ni secreto. Rutas: raíz del proyecto por <code>profile.sh root</code>; plugin por <code>${CLAUDE_PLUGIN_ROOT}</code>.</p>
+<h4>Async and concurrency</h4>
+<p class="na">N/A — ejecución síncrona, un archivo por invocación.</p>
+<h3>Diagrams</h3>
+<h4>Componentes del pipeline</h4>
+<p>El agente autora la IR; el script la valida, enruta y renderiza; las demás especialistas consumen el JSON. Todo ocurre en el repo del usuario.</p>
+<pre class="mermaid">flowchart LR
+  U[Usuario / spec] --&gt;|pide diagrama| A[Agente: skills/diagram]
+  A --&gt;|escribe| IR[(.hyperui/diagrams/x.json)]
+  IR --&gt; V[diagram-check.mjs validate]
+  V --&gt;|0 errors| R[diagram-check.mjs render]
+  V --&gt;|diagnósticos| A
+  R --&gt; H[x.html visor]
+  R --&gt; M[x.mmd Mermaid]
+  H --&gt;|Artifact tool| P[Artifact en Claude]
+  IR -.-&gt;|leen| S[spec · critique · patterns]</pre>
+<h4>Camino feliz</h4>
+<p>Un diagrama válido a la primera: una sola pasada de validación, render y publicación en el mismo turno.</p>
+<pre class="mermaid">sequenceDiagram
+    participant U as Usuario
+    participant A as Agente (diagram)
+    participant S as diagram-check.mjs
+    participant F as .hyperui/diagrams
+    participant C as Artifact
+    U-&gt;&gt;A: "hazme el diagrama de arquitectura de X"
+    A-&gt;&gt;A: elige tipo, aplica reglas de autoría, escribe IR
+    A-&gt;&gt;F: x.json
+    A-&gt;&gt;S: validate x.json --json
+    S--&gt;&gt;A: 0 errors
+    A-&gt;&gt;S: render x.json · mermaid x.json
+    S-&gt;&gt;F: x.html · x.mmd
+    A-&gt;&gt;C: publish x.html
+    C--&gt;&gt;A: url
+    A-&gt;&gt;F: design.md ## Diagrams (+ state.md artifacts)
+    A--&gt;&gt;U: enlace + línea de cuidado "diagram validated" + opciones</pre>
+<h4>Fallo de validación con reparación acotada</h4>
+<p>El validador nombra el elemento y el arreglo; el agente corrige solo ese vecindario; tras dos intentos entrega con brecha declarada.</p>
+<pre class="mermaid">sequenceDiagram
+    participant A as Agente (diagram)
+    participant S as diagram-check.mjs
+    A-&gt;&gt;S: validate x.json --json
+    S--&gt;&gt;A: clean-flow/edge-through-node {edge api→db, node cache, fix: move cache to row 2}
+    A-&gt;&gt;A: reparación 1: mueve "cache" (solo ese nodo)
+    A-&gt;&gt;S: validate
+    S--&gt;&gt;A: layout/text-fit {node worker, need 152px, fix: widen or shorten}
+    A-&gt;&gt;A: reparación 2: acorta etiqueta de "worker"
+    A-&gt;&gt;S: validate
+    alt 0 errors
+        S--&gt;&gt;A: ok → render
+    else siguen errores
+        S--&gt;&gt;A: diagnósticos restantes
+        A-&gt;&gt;A: entrega HTML con brecha declarada en respuesta y design.md
+    end</pre>
+<h3>Decisions (ADR-lite)</h3>
+<ul>
+<li><strong>Un solo script Node sin dependencias</strong> — Context: el plugin no tiene toolchain ni <code>node_modules</code>; archify arrastra ajv y 400 KB de visor. Decision: <code>scripts/diagram-check.mjs</code> autocontenido (esquema a mano, geometría propia/adaptada). Consequences: más código nuestro (~1.5k líneas), cero instalación en runtime, fácil de auditar. Status: accepted.</li>
+<li><strong>Cuadrícula obligatoria, sin posiciones libres en v1</strong> — Context: la calidad depende de que el agente coloque bien; coordenadas libres multiplican errores. Decision: <code>row/col</code> + <code>layout</code> por diagrama; <code>via</code> solo para defectos medidos. Consequences: menos expresividad, validación más simple y reparaciones deterministas. Status: accepted.</li>
+<li><strong>Visor &lt; 60 KB sin fuentes</strong> — Context: archify embebe 96 KB de fuentes y 400 KB de JS. Decision: stack de fuentes del sistema, JS mínimo (foco, alcance, export). Consequences: menos funciones (sin minimapa, lentes, presentación), archivos ligeros y commiteables. Status: accepted.</li>
+<li><strong>Mermaid solo como export y camino rápido</strong> — Context: archify midió que Mermaid estilizado pierde contra el layout autorado. Decision: <code>.mmd</code> derivado para READMEs; inline solo ≤ 6 nodos sin grupos. Consequences: dos representaciones, pero una sola fuente de verdad. Status: accepted.</li>
+<li><strong>Enrutamiento fino y evidencia git en v2</strong> — Context: coste y riesgo de la v1. Decision: el enrutador v1 hace recto/L/Z/Dijkstra y el validador exige "no atraviesa nodos"; cruces como warning. Consequences: diagramas correctos pero no siempre óptimos; se mide en uso real antes de invertir. Status: accepted.</li>
+<li><strong>Atribución MIT explícita</strong> — Decision: <code>NOTICE</code> + <code>skills/diagram/LICENSE-archify</code> + cabecera por función adaptada. Consequences: cumplimiento sin vendorizar su código. Status: accepted.</li>
+</ul>
+<h3>Implementation considerations</h3>
+<h4>Security</h4>
+<p>Sin red ni entrada externa salvo el JSON del propio agente; el script no ejecuta nada del contenido; etiquetas escapadas al generar SVG/HTML (<code>&lt;</code>, <code>&gt;</code>, <code>&amp;</code>, comillas) para evitar inyección en el visor; rutas de salida limitadas a <code>&lt;root&gt;/.hyperui/diagrams/</code>.</p>
+<h4>Performance</h4>
+<p>Validación &lt; 1 s para ≤ 40 nodos (medido en <code>--self-test</code>); Dijkstra sobre malla dispersa (celdas + stubs), no píxel a píxel.</p>
+<h4>Accessibility and i18n</h4>
+<p>Nodos con <code>role="button"</code>, <code>tabindex</code>, <code>aria-label</code>; foco visible; contraste AA en ambos temas; etiquetas en <code>meta.lang</code> (= <code>product_languages[0]</code>); chrome del visor (~10 cadenas) en inglés con override por <code>meta.lang</code> para es/en.</p>
+<h4>Testing strategy</h4>
+<p>TDD: <code>--self-test</code> escribe primero los casos: (1) cinco ejemplos válidos → 0 errors; (2) un caso por código de error con el arreglo esperado; (3) render produce HTML &lt; 61 440 bytes con un solo <code>&lt;svg&gt;</code> y JSON embebido idéntico; (4) Mermaid export válido por tipo; (5) determinismo: misma IR → mismo SVG. <code>check.sh</code> corre <code>--self-test</code>, el lint de tamaño y la presencia de <code>LICENSE-archify</code>. Smoke: diagrama de la arquitectura de hyperui generado por la skill y publicado.</p>
+<h4>Observability</h4>
+<p><code>validate --json</code> es parseable; <code>unit_closed skill=diagram iterations</code> con consentimiento; nada más.</p>
+<h4>Docs to update</h4>
+<p><code>README.md</code> (How it works + tabla de especialistas + sección "Diagrams"), <code>docs/architecture.md</code> (árbol, gate, memoria), <code>CHANGELOG.md</code> 0.13.0, <code>docs/research/README.md</code> (fila del método), manifests.</p>
+<h3>Open questions</h3>
+<p>Ninguna que bloquee las tareas. Pregunta del PRD (qué ve primero el no-tech): el artifact directo con una línea de contexto; se recoge en la skill §tono.</p>
+<h3>Traceability REQ → decisión</h3>
+<div class="table-wrap"><table><thead><tr><th>REQ</th><th>Decisión / componente</th></tr></thead><tbody><tr><td>REQ-001 generar</td><td>skill §procedimiento, <code>render</code>, Artifact</td></tr><tr><td>REQ-002 IR fuente de verdad</td><td><code>schema.json</code>, JSON embebido, lectura por <code>critique</code>/<code>patterns</code></td></tr><tr><td>REQ-003 colocar y medir</td><td><code>layout</code> + <code>checks</code> 2–10</td></tr><tr><td>REQ-004 arreglos y bucle acotado</td><td><code>diagnostics</code> + skill §reparación</td></tr><tr><td>REQ-005 visor</td><td><code>templates/diagram/viewer.html</code> + lint de tamaño</td></tr><tr><td>REQ-006 tokens</td><td><code>HYPERUI:TOKENS</code> + <code>meta.tokens</code> desde <code>design.md</code></td></tr><tr><td>REQ-007 Mermaid</td><td><code>mermaid</code> subcomando + skill §camino rápido</td></tr><tr><td>REQ-008 iterar sin mover</td><td>skill §iteración (editar IR existente, misma URL)</td></tr><tr><td>REQ-009 autoría</td><td><code>references/authoring.md</code></td></tr><tr><td>REQ-010 integración</td><td>skill raíz, <code>spec</code>, <code>critique</code>, <code>patterns</code>, <code>design.md</code></td></tr><tr><td>REQ-011 atribución</td><td><code>NOTICE</code>, <code>LICENSE-archify</code>, cabeceras</td></tr></tbody></table></div>
+<h3>Revisions</h3></section>
+<section id="tareas"><h2>Tareas</h2>
+<p>Repo: <code>~/personal/hyperui</code> (rama <code>feature/diagram-skill</code> desde <code>main</code>, trabajo en worktree aislado; sin amend, sin force-push). Gate de cada tarea: <code>bash scripts/check.sh</code> · <code>node scripts/diagram-check.mjs --self-test</code> · <code>npm run version-check</code>. TDD: los casos de <code>--self-test</code> se escriben antes del código que los hace pasar. Presupuesto de verificación: gate + un smoke; sin evals.</p>
+<h3>Implementation plan</h3>
+<h4>Wave 1 — Cimientos: esquema, ejemplos, geometría, licencia</h4>
+<p>Sin dependencias entre sí.</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-001</strong>: Esquema de la IR y ejemplos de los cinco tipos</li>
+</ul>
+<p>- <strong>What</strong>: <code>skills/diagram/schema.json</code> con campos requeridos/permitidos por <code>diagram_type</code>, enums (<code>type</code>, <code>variant</code>, <code>kind</code>, lados), patrón de <code>id</code>, límites de <code>layout</code>; cinco IR de ejemplo válidas y pequeñas (6–10 nodos) que luego sirven de fixtures y de documentación.</p>
+<p>- <strong>Files</strong>: <code>skills/diagram/schema.json</code> (new), <code>skills/diagram/references/examples/{architecture,flow,sequence,dataflow,lifecycle}.json</code> (new)</p>
+<p>- <strong>Tests first</strong>: en <code>--self-test</code>: los cinco ejemplos pasan el chequeo de esquema; un documento con campo desconocido falla con <code>schema/unknown-property</code>; <code>id</code> inválido falla con <code>schema/id-pattern</code>; endpoint inexistente falla con <code>schema/unknown-endpoint</code>.</p>
+<p>- <strong>Commands</strong>: <code>node scripts/diagram-check.mjs --self-test</code> (falla hasta TASK-002) · <code>bash scripts/check.sh</code></p>
+<p>- <strong>Acceptance</strong>: los cinco JSON parsean, cada uno declara <code>schema_version: 1</code>, <code>diagram_type</code>, <code>meta.title</code>, <code>meta.lang</code>; el esquema cubre todos sus campos; ningún campo fuera del esquema.</p>
+<p>- <strong>Covers</strong>: REQ-002 (IR fuente de verdad)</p>
+<p>- <strong>Depends on</strong>: none</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-002</strong>: Núcleo del script: esquema, layout a píxeles, geometría, diagnósticos y <code>--self-test</code></li>
+</ul>
+<p>- <strong>What</strong>: <code>scripts/diagram-check.mjs</code> con el CLI (<code>validate</code>, <code>--json</code>, <code>--self-test</code>), chequeo estructural a mano contra <code>schema.json</code>, conversión celda → px (<code>layout</code> por defecto 140×64, gaps 48/56, origen 40,80), helpers de geometría adaptados de archify con cabecera <code>// Adapted from archify &lt;path&gt;@bb990b1 (MIT)</code> (<code>rectsOverlap</code>, <code>segmentIntersectsRect</code>, <code>properSegmentIntersection</code>, <code>segmentRectClearance</code>, <code>textUnits</code> con CJK = 2, <code>fittedFontSize</code>/<code>minimumNodeTextWidth</code>), y la forma común de diagnóstico <code>{code, severity, message, subject, evidence, supportedFixes}</code>; exit 1 con cualquier error.</p>
+<p>- <strong>Files</strong>: <code>scripts/diagram-check.mjs</code> (new), <code>skills/diagram/references/diagnostics.md</code> (new, catálogo de códigos)</p>
+<p>- <strong>Tests first</strong>: fixtures de error inline en <code>--self-test</code>: <code>layout/cell-collision</code>, <code>layout/out-of-grid</code>, <code>layout/node-overlap</code>, <code>layout/text-fit</code> (mide <code>0.6·font·units + 8</code>), <code>layout/out-of-canvas</code>; cada uno comprueba <code>code</code>, <code>subject.id</code> y que <code>supportedFixes</code> no esté vacío; salida <code>--json</code> parsea línea a línea.</p>
+<p>- <strong>Commands</strong>: <code>node scripts/diagram-check.mjs --self-test</code> · <code>node scripts/diagram-check.mjs validate skills/diagram/references/examples/architecture.json --json</code> · <code>bash -n</code>/<code>node --check scripts/diagram-check.mjs</code></p>
+<p>- <strong>Acceptance</strong>: <code>--self-test</code> verde para los casos de esquema y layout; <code>validate</code> de los cinco ejemplos → <code>0 errors</code>, exit 0, &lt; 1 s; sin <code>import</code> de paquetes npm (solo <code>node:fs</code>, <code>node:path</code>, <code>node:process</code>).</p>
+<p>- <strong>Covers</strong>: REQ-002, REQ-003 (colocar y medir), REQ-004 (diagnósticos)</p>
+<p>- <strong>Depends on</strong>: TASK-001 (fixtures) — puede empezar en paralelo con un fixture mínimo</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-003</strong>: Licencia y atribución</li>
+</ul>
+<p>- <strong>What</strong>: copiar la licencia MIT de archify a <code>skills/diagram/LICENSE-archify</code>; añadir a <code>NOTICE</code> la línea de atribución (commit <code>bb990b1</code>, Copyright tt-a1i / Cocoon AI); lint en <code>check.sh</code> que exige ambos.</p>
+<p>- <strong>Files</strong>: <code>skills/diagram/LICENSE-archify</code> (new), <code>NOTICE</code> (modified), <code>scripts/check.sh</code> (modified)</p>
+<p>- <strong>Tests first</strong>: <code>check.sh</code> falla si falta <code>LICENSE-archify</code> o la línea "Archify" en <code>NOTICE</code> (probar quitándolos en un temp copy).</p>
+<p>- <strong>Commands</strong>: <code>bash scripts/check.sh</code></p>
+<p>- <strong>Acceptance</strong>: <code>grep -n Archify NOTICE</code> encuentra la línea; el archivo de licencia contiene el texto MIT completo; gate verde.</p>
+<p>- <strong>Covers</strong>: REQ-011 (atribución)</p>
+<p>- <strong>Depends on</strong>: none</p>
+<h4>Wave 2 — Enrutador, chequeos de flujo, visor y Mermaid</h4>
+<p>Depende de la ola 1.</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-004</strong>: Enrutador ortogonal y chequeos de flujo</li>
+</ul>
+<p>- <strong>What</strong>: en <code>diagram-check.mjs</code>: puertos en el punto medio del lado con *port spread* (gutter 16 px, paso 14 px); escalera de rutas recto → L → Z → Dijkstra en malla ortogonal dispersa (bordes de obstáculos + stubs de puerto); chequeos <code>clean-flow/edge-through-node</code> (≤ 2 px), <code>clean-flow/endpoint-side-direction</code>, <code>composition/proper-crossing</code> (warning), <code>composition/label-overlap</code>, <code>composition/label-gap</code> (<code>6.5·units + 21</code>), <code>readability/projected-text</code> (&lt; 6 px a 1440), <code>budget/too-many-nodes</code> (&gt; 12, warning); etiquetas de arista colocadas en el segmento más largo con <code>labelAt</code> opcional.</p>
+<p>- <strong>Files</strong>: <code>scripts/diagram-check.mjs</code> (modified)</p>
+<p>- <strong>Tests first</strong>: fixture con una arista que atraviesa un nodo → <code>edge-through-node</code> con el id; fixture con <code>fromSide: top</code> y ruta que sale por la derecha → <code>endpoint-side-direction</code>; fixture con etiqueta larga en hueco corto → <code>label-gap</code> con la medida; fixture de 14 nodos → warning <code>too-many-nodes</code>; ruta Dijkstra evita obstáculo y termina con segmentos ≥ 8 px; determinismo (misma IR → mismos puntos).</p>
+<p>- <strong>Commands</strong>: <code>node scripts/diagram-check.mjs --self-test</code></p>
+<p>- <strong>Acceptance</strong>: todos los casos verdes; los cinco ejemplos siguen en <code>0 errors</code>; cada ruta de los ejemplos tiene ≤ 2 codos.</p>
+<p>- <strong>Covers</strong>: REQ-003, REQ-004, REQ-009 (reglas medibles)</p>
+<p>- <strong>Depends on</strong>: TASK-002</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-005</strong>: Visor autocontenido y subcomando <code>render</code></li>
+</ul>
+<p>- <strong>What</strong>: <code>templates/diagram/viewer.html</code> con marcadores <code>/* HYPERUI:TITLE|TOKENS|SVG|IR|LEGEND */</code>, tokens CSS con los tres bloques de tema, <code>&lt;svg role="img"&gt;</code> con <code>&lt;title&gt;/&lt;desc&gt;</code>, <code>&lt;defs&gt;</code> (markers por variante, rejilla), orden grupos → aristas → nodos → leyenda, <code>rect.c-mask</code>, halo en cruces, <code>data-node-*</code>/<code>data-edge-*</code>, <code>&lt;script type="application/json" id="diagram-ir"&gt;</code>; JS: foco (clic/teclado), vecinos, alcance arriba/abajo (BFS sobre <code>data-edge-*</code>), <code>#focus=&lt;id&gt;</code> y <code>#reach=up|down</code>, export PNG 2× y SVG, toggle de tema, leyenda automática. <code>render</code> escribe <code>&lt;name&gt;.html</code> (y <code>--svg</code> opcional) solo si <code>validate</code> da 0 errores; escapa <code>&lt;&gt;&amp;"</code> en todo texto.</p>
+<p>- <strong>Files</strong>: <code>templates/diagram/viewer.html</code> (new), <code>scripts/diagram-check.mjs</code> (modified)</p>
+<p>- <strong>Tests first</strong>: <code>--self-test</code>: render de los cinco ejemplos produce HTML con exactamente un <code>&lt;svg&gt;</code>, sin <code>NaN|undefined|Infinity</code> en atributos numéricos, JSON embebido idéntico a la IR (<code>JSON.stringify</code> canónico), tamaño &lt; 61 440 bytes, sin colores hex literales dentro del SVG (<code>grep -c '#[0-9a-f]\{6\}'</code> = 0 fuera del bloque de tokens); render de una IR inválida no escribe archivo.</p>
+<p>- <strong>Commands</strong>: <code>node scripts/diagram-check.mjs render skills/diagram/references/examples/architecture.json --out /tmp/x</code> · headless Chrome screenshot del HTML a 1280 (evidencia) · <code>bash scripts/check.sh</code> (lint de tamaño)</p>
+<p>- <strong>Acceptance</strong>: HTML abre en Chrome claro y oscuro, foco y alcance funcionan con teclado y ratón (verificado con una captura por tema), PNG se descarga a 2×; <code>check.sh</code> falla si el visor renderizado supera 60 KB.</p>
+<p>- <strong>Covers</strong>: REQ-005 (visor), REQ-006 (tokens), REQ-002 (JSON embebido)</p>
+<p>- <strong>Depends on</strong>: TASK-004</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-006</strong>: Export Mermaid y re-autoría de Mermaid pegado</li>
+</ul>
+<p>- <strong>What</strong>: subcomando <code>mermaid</code> (<code>flowchart LR</code> con <code>subgraph</code> por grupo y <code>--&gt;|label|</code>; <code>sequenceDiagram</code>; <code>stateDiagram-v2</code>); parser mínimo de Mermaid pegado (flowchart/sequence) → IR esqueleto con <code>row/col</code> por orden de aparición, para que el agente lo termine.</p>
+<p>- <strong>Files</strong>: <code>scripts/diagram-check.mjs</code> (modified)</p>
+<p>- <strong>Tests first</strong>: cada ejemplo exporta un <code>.mmd</code> cuyo conteo de nodos/aristas coincide con la IR; <code>sequence</code> conserva el orden de mensajes; un <code>flowchart</code> pegado con 4 nodos → IR con 4 nodos y las aristas correctas.</p>
+<p>- <strong>Commands</strong>: <code>node scripts/diagram-check.mjs mermaid skills/diagram/references/examples/sequence.json --out /tmp/x</code> · <code>--self-test</code></p>
+<p>- <strong>Acceptance</strong>: <code>.mmd</code> renderiza en GitHub (verificado pegándolo en un gist o en el README del smoke); casos verdes.</p>
+<p>- <strong>Covers</strong>: REQ-007 (Mermaid)</p>
+<p>- <strong>Depends on</strong>: TASK-002</p>
+<h4>Wave 3 — La skill y su cableado</h4>
+<p>Depende de la ola 2.</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-007</strong>: <code>skills/diagram/SKILL.md</code> y referencias de autoría</li>
+</ul>
+<p>- <strong>What</strong>: SKILL.md (≤ 180 líneas): frontmatter estándar (<code>user-invocable: false</code>, preámbulo exacto, <code>allowed-tools</code> con <code>Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)</code> y <code>profile.sh</code>), elección del tipo por señales, reglas de autoría (camino principal, ramas/almacenes junto al dueño, retornos por corredor libre, 8–12 nodos, etiquetas ≤ 24 chars, un énfasis por vista), procedimiento (IR → validate → ≤ 2 reparaciones focalizadas → render → mermaid → artifact → <code>design.md ## Diagrams</code> → <code>state.md</code>), iteración sin mover lo no tocado (misma URL), tono por arquetipo (no-tech: artifact + 1 línea), camino rápido Mermaid, línea de cuidado <code>diagram validated</code>, telemetría <code>unit_closed</code>, <code>## Sources</code>. <code>references/authoring.md</code> con las fórmulas medidas; <code>references/diagnostics.md</code> ya existe (TASK-002).</p>
+<p>- <strong>Files</strong>: <code>skills/diagram/SKILL.md</code> (new), <code>skills/diagram/references/authoring.md</code> (new)</p>
+<p>- <strong>Tests first</strong>: <code>check.sh</code> (lints de especialista) verde; un smoke headless genera el diagrama de arquitectura de un fixture pequeño y produce json+html+mmd con 0 errores.</p>
+<p>- <strong>Commands</strong>: <code>bash scripts/check.sh</code> · <code>claude --plugin-dir . -p "hazme el diagrama de arquitectura de este proyecto" --permission-mode acceptEdits</code> en un fixture</p>
+<p>- <strong>Acceptance</strong>: la skill pasa todos los lints; el smoke deja <code>.hyperui/diagrams/&lt;name&gt;.{json,html,mmd}</code>, <code>design.md ## Diagrams</code> y responde con ruta/enlace, línea de cuidado y opciones.</p>
+<p>- <strong>Covers</strong>: REQ-001, REQ-004, REQ-008, REQ-009, REQ-010 (parcial)</p>
+<p>- <strong>Depends on</strong>: TASK-005, TASK-006</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-008</strong>: Cableado en el resto del plugin</li>
+</ul>
+<p>- <strong>What</strong>: skill raíz (fila de enrutamiento <code>diagram</code>, gate "sin <code>0 errors</code> no se entrega", vocabulario <code>diagram validated</code>; ≤ 220 líneas), <code>spec</code> (fase de diseño: shapes backend+UI/multi-servicio/nueva plataforma producen contenedores + secuencia con <code>diagram</code>; <code>design-template.md</code> lo refleja), <code>critique</code> y <code>patterns</code> (leer <code>.hyperui/diagrams/*.json</code> si existe), <code>permit.sh</code> (pre-aprobar <code>node &lt;root&gt;/scripts/diagram-check.mjs</code>), <code>templates/hyperui/design.md</code> (<code>## Diagrams</code>), <code>check.sh</code> (<code>--self-test</code> dentro del gate).</p>
+<p>- <strong>Files</strong>: <code>SKILL.md</code>, <code>skills/spec/SKILL.md</code>, <code>skills/spec/references/design-template.md</code>, <code>skills/critique/SKILL.md</code>, <code>skills/patterns/SKILL.md</code>, <code>scripts/permit.sh</code>, <code>templates/hyperui/design.md</code>, <code>scripts/check.sh</code> (modified)</p>
+<p>- <strong>Tests first</strong>: <code>check.sh</code> verde con <code>--self-test</code> incluido; <code>permit.sh</code> devuelve allow para el comando del script y nada para <code>rm -rf /</code>; caps de líneas respetados.</p>
+<p>- <strong>Commands</strong>: <code>bash scripts/check.sh</code> · prueba unitaria de <code>permit.sh</code> con un JSON de entrada</p>
+<p>- <strong>Acceptance</strong>: <code>grep -n diagram SKILL.md skills/spec/SKILL.md skills/critique/SKILL.md skills/patterns/SKILL.md</code> muestra el cableado; gate verde.</p>
+<p>- <strong>Covers</strong>: REQ-010 (integración), REQ-005 (lint de tamaño en el gate)</p>
+<p>- <strong>Depends on</strong>: TASK-007</p>
+<h4>Wave 4 — Docs, release y smoke real</h4>
+<p>Depende de la ola 3.</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-009</strong>: Documentación y versión 0.13.0</li>
+</ul>
+<p>- <strong>What</strong>: README (bullet en How it works, fila en especialistas, sección "Diagrams" con una captura del visor y el bloque Mermaid exportado), <code>docs/architecture.md</code> (árbol, gate, memoria <code>diagrams/</code>), <code>docs/research/README.md</code> (fila del método archify), CHANGELOG <code>## 0.13.0</code>, manifests y <code>package.json</code> a 0.13.0.</p>
+<p>- <strong>Files</strong>: <code>README.md</code>, <code>docs/architecture.md</code>, <code>docs/research/README.md</code>, <code>CHANGELOG.md</code>, <code>.claude-plugin/plugin.json</code>, <code>.claude-plugin/marketplace.json</code>, <code>package.json</code> (modified)</p>
+<p>- <strong>Tests first</strong>: <code>npm run version-check</code>; <code>check.sh</code>.</p>
+<p>- <strong>Commands</strong>: <code>npm run version-check</code> · <code>bash scripts/check.sh</code></p>
+<p>- <strong>Acceptance</strong>: versiones iguales en los tres archivos; README sin referencias a empresas; gate verde.</p>
+<p>- <strong>Covers</strong>: REQ-010, REQ-011</p>
+<p>- <strong>Depends on</strong>: TASK-008</p>
+<ul>
+<li><input type="checkbox" disabled> <strong>TASK-010</strong>: Smoke real: el diagrama de arquitectura de hyperui</li>
+</ul>
+<p>- <strong>What</strong>: con la skill ya cableada, generar <code>.hyperui/diagrams/hyperui-architecture.{json,html,mmd}</code> del propio plugin (entrada, especialistas, scripts, hooks, memoria <code>.hyperui/</code>, artifacts), publicarlo como artifact, pegar el <code>.mmd</code> en <code>docs/architecture.md</code> y usar la captura en el README (TASK-009 lo deja preparado).</p>
+<p>- <strong>Files</strong>: <code>.hyperui/diagrams/hyperui-architecture.*</code> (new, en este repo porque hyperui es a la vez plugin y proyecto), <code>docs/architecture.md</code>, <code>README.md</code> (modified)</p>
+<p>- <strong>Tests first</strong>: <code>validate</code> → 0 errors en ≤ 2 reparaciones; captura a 1280 claro y oscuro sin solapes.</p>
+<p>- <strong>Commands</strong>: <code>claude --plugin-dir . -p "hazme el diagrama de arquitectura de hyperui"</code> · <code>node scripts/diagram-check.mjs validate .hyperui/diagrams/hyperui-architecture.json</code></p>
+<p>- <strong>Acceptance</strong>: artifact publicado y enlazado en <code>design.md ## Diagrams</code>; iteraciones registradas; el Mermaid renderiza en GitHub.</p>
+<p>- <strong>Covers</strong>: REQ-001, REQ-005, REQ-007, señal de éxito 1 del PRD</p>
+<p>- <strong>Depends on</strong>: TASK-009</p>
+<h3>Summary</h3>
+<div class="table-wrap"><table><thead><tr><th>Task</th><th>Title</th><th>Wave</th><th>Covers</th><th>Status</th></tr></thead><tbody><tr><td>TASK-001</td><td>Esquema de la IR y ejemplos</td><td>1</td><td>REQ-002</td><td>pending</td></tr><tr><td>TASK-002</td><td>Núcleo del script: esquema, layout, geometría, diagnósticos, self-test</td><td>1</td><td>REQ-002, 003, 004</td><td>pending</td></tr><tr><td>TASK-003</td><td>Licencia y atribución</td><td>1</td><td>REQ-011</td><td>pending</td></tr><tr><td>TASK-004</td><td>Enrutador y chequeos de flujo</td><td>2</td><td>REQ-003, 004, 009</td><td>pending</td></tr><tr><td>TASK-005</td><td>Visor autocontenido y <code>render</code></td><td>2</td><td>REQ-005, 006, 002</td><td>pending</td></tr><tr><td>TASK-006</td><td>Export Mermaid y re-autoría</td><td>2</td><td>REQ-007</td><td>pending</td></tr><tr><td>TASK-007</td><td>SKILL.md y referencias de autoría</td><td>3</td><td>REQ-001, 004, 008, 009, 010</td><td>pending</td></tr><tr><td>TASK-008</td><td>Cableado en el plugin</td><td>3</td><td>REQ-010, 005</td><td>pending</td></tr><tr><td>TASK-009</td><td>Docs y 0.13.0</td><td>4</td><td>REQ-010, 011</td><td>pending</td></tr><tr><td>TASK-010</td><td>Smoke real: arquitectura de hyperui</td><td>4</td><td>REQ-001, 005, 007</td><td>pending</td></tr></tbody></table></div>
+<h3>Revisions</h3></section>
+<section id="trazabilidad-uc-req-decision-task"><h2>Trazabilidad UC → REQ → decisión → TASK</h2>
+<div class="table-wrap"><table><thead><tr><th>UC</th><th>REQ</th><th>Decisión / componente</th><th>TASK</th></tr></thead><tbody><tr><td>UC-01 diagrama desde descripción o spec</td><td>REQ-001, 002, 003, 006, 009, 010</td><td>skill §procedimiento · schema.json · layout+checks · tokens · authoring.md · cableado</td><td>TASK-001, 002, 004, 005, 007, 008, 010</td></tr><tr><td>UC-02 explorar e iterar</td><td>REQ-005, 008</td><td>viewer.html · skill §iteración (misma URL)</td><td>TASK-005, 007</td></tr><tr><td>UC-03 exportar</td><td>REQ-005, 007</td><td>export PNG/SVG · subcomando mermaid</td><td>TASK-005, 006</td></tr><tr><td>UC-04 un agente lee el diagrama</td><td>REQ-002, 010</td><td>JSON embebido · critique/patterns leen .hyperui/diagrams</td><td>TASK-001, 002, 008</td></tr><tr><td>UC-05 no pasa validación</td><td>REQ-004</td><td>diagnostics + repair loop ≤ 2</td><td>TASK-002, 004, 007</td></tr><tr><td>— (licencia)</td><td>REQ-011</td><td>NOTICE · LICENSE-archify · cabeceras</td><td>TASK-003, 009</td></tr></tbody></table></div></section>
+    </main>
+  </div>
+
+  <p class="footer">Source of truth: the markdown in <code>.hyperui/spec/</code>. This page is regenerated on every revision.</p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script>
+(function () {
+  var root = document.documentElement, btn = document.getElementById('theme');
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  function isDark() {
+    var t = root.getAttribute('data-theme');
+    return t ? t === 'dark' : mq.matches;
+  }
+  function apply(theme) {
+    if (theme) { root.setAttribute('data-theme', theme); }   // null = keep the attribute the page shipped with
+    var dark = isDark();
+    btn.textContent = dark ? 'Light mode' : 'Dark mode';
+    btn.setAttribute('aria-pressed', String(dark));
+    try { if (window.mermaid) { renderMermaid(dark); } } catch (e) {}
+  }
+  var saved = null;
+  try { saved = localStorage.getItem('hyperui-spec-theme'); } catch (e) {}
+  btn.addEventListener('click', function () {
+    var next = isDark() ? 'light' : 'dark';
+    try { localStorage.setItem('hyperui-spec-theme', next); } catch (e) {}
+    apply(next);
+  });
+
+  // Mermaid: keep the raw source so the diagram can be re-rendered when the theme flips.
+  var blocks = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid'));
+  blocks.forEach(function (b, i) { b.dataset.src = b.textContent; b.id = b.id || 'mmd-' + i; });
+  function renderMermaid(dark) {
+    if (!blocks.length) return;
+    mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'neutral', securityLevel: 'strict' });
+    blocks.forEach(function (b) {
+      b.removeAttribute('data-processed');
+      b.textContent = b.dataset.src;
+    });
+    mermaid.run({ nodes: blocks }).catch(function () {});
+  }
+
+  apply(saved);
+  if (!saved) { mq.addEventListener('change', function () { apply(null); }); }
+
+  // Highlight the current section in the TOC.
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a[href^="#"]'));
+  var targets = links.map(function (a) { return document.getElementById(decodeURIComponent(a.hash.slice(1))); });
+  if ('IntersectionObserver' in window && targets.some(Boolean)) {
+    var current = null;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) current = e.target; });
+      links.forEach(function (a, i) { a.classList.toggle('active', targets[i] === current); });
+    }, { rootMargin: '-10% 0px -70% 0px' });
+    targets.forEach(function (t) { if (t) io.observe(t); });
+  }
+})();
+</script>
