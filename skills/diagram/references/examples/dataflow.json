@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Clickstream — from event to dashboard",
+    "lang": "en",
+    "description": "Each stage is a column; edge labels name the data asset that moves, not the transport."
+  },
+  "layout": { "cols": 6 },
+  "nodes": [
+    { "id": "web", "type": "frontend", "label": "Web app", "row": 0, "col": 0 },
+    { "id": "mobile", "type": "frontend", "label": "Mobile app", "row": 1, "col": 0 },
+    { "id": "collector", "type": "backend", "label": "Event collector", "row": 0, "col": 1 },
+    { "id": "topic", "type": "messagebus", "label": "events topic", "sublabel": "Kafka", "row": 0, "col": 2 },
+    { "id": "stream", "type": "backend", "label": "Stream processor", "row": 0, "col": 3 },
+    { "id": "warehouse", "type": "database", "label": "Warehouse", "sublabel": "daily facts", "row": 0, "col": 4 },
+    { "id": "dashboard", "type": "frontend", "label": "Dashboard", "row": 0, "col": 5 }
+  ],
+  "groups": [
+    { "id": "sources", "label": "Sources", "kind": "stage", "wraps": ["web", "mobile"] },
+    { "id": "ingest", "label": "Ingest", "kind": "stage", "wraps": ["collector"] },
+    { "id": "process", "label": "Process", "kind": "stage", "wraps": ["topic", "stream"] },
+    { "id": "serve", "label": "Serve", "kind": "stage", "wraps": ["warehouse", "dashboard"] }
+  ],
+  "edges": [
+    { "from": "web", "to": "collector", "label": "page views" },
+    { "from": "mobile", "to": "collector", "label": "taps", "toSide": "bottom" },
+    { "from": "collector", "to": "topic", "label": "raw events" },
+    { "from": "topic", "to": "stream", "label": "raw events", "variant": "dashed" },
+    { "from": "stream", "to": "warehouse", "label": "sessions" },
+    { "from": "warehouse", "to": "dashboard", "label": "aggregates" }
+  ]
+}

@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "hyperui — how it fits together",
+    "lang": "en",
+    "description": "One visible entry routes each request to a hidden specialist; what they learn lands in .hyperui/ inside your repo, what they show goes to Claude artifacts.",
+    "related": [
+      "skills/diagram/references/examples/sequence.json"
+    ]
+  },
+  "layout": {
+    "cols": 4,
+    "cellW": 170,
+    "gapX": 120
+  },
+  "nodes": [
+    {
+      "id": "hooks",
+      "type": "security",
+      "label": "Hooks",
+      "sublabel": "welcome.sh · permit.sh",
+      "row": 0,
+      "col": 0
+    },
+    {
+      "id": "user",
+      "type": "actor",
+      "label": "You",
+      "sublabel": "any language",
+      "row": 1,
+      "col": 0,
+      "h": 96
+    },
+    {
+      "id": "scripts",
+      "type": "backend",
+      "label": "Scripts",
+      "sublabel": "profile · telemetry · diagram-check",
+      "row": 0,
+      "col": 1,
+      "w": 220
+    },
+    {
+      "id": "entry",
+      "type": "frontend",
+      "label": "/hyperui",
+      "sublabel": "entry skill · routes by intent",
+      "row": 1,
+      "col": 1,
+      "w": 220,
+      "h": 96
+    },
+    {
+      "id": "agents",
+      "type": "backend",
+      "label": "Agents",
+      "sublabel": "builder, reviewer, researcher, scout",
+      "row": 2,
+      "col": 1,
+      "w": 220
+    },
+    {
+      "id": "design",
+      "type": "frontend",
+      "label": "Design",
+      "sublabel": "design · critique · motion · video",
+      "row": 0,
+      "col": 2,
+      "w": 200
+    },
+    {
+      "id": "plan",
+      "type": "backend",
+      "label": "Plan",
+      "sublabel": "spec · diagram · patterns · viz",
+      "row": 1,
+      "col": 2,
+      "w": 200,
+      "h": 96
+    },
+    {
+      "id": "build",
+      "type": "backend",
+      "label": "Build",
+      "sublabel": "build · review",
+      "row": 2,
+      "col": 2
+    },
+    {
+      "id": "ship",
+      "type": "cloud",
+      "label": "Ship",
+      "sublabel": "ship · infra · git",
+      "row": 3,
+      "col": 2
+    },
+    {
+      "id": "artifacts",
+      "type": "external",
+      "label": "Claude artifacts",
+      "sublabel": "pages you explore",
+      "row": 0,
+      "col": 3
+    },
+    {
+      "id": "memory",
+      "type": "database",
+      "label": ".hyperui/",
+      "sublabel": "profile · state · spec · diagrams",
+      "row": 1,
+      "col": 3,
+      "w": 200,
+      "h": 96
+    },
+    {
+      "id": "repo",
+      "type": "cloud",
+      "label": "Your code",
+      "sublabel": "tests · docs · configs",
+      "row": 2,
+      "col": 3
+    }
+  ],
+  "groups": [
+    {
+      "id": "your-repo",
+      "label": "Your repo",
+      "kind": "boundary",
+      "wraps": [
+        "memory",
+        "repo"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "from": "user",
+      "to": "entry",
+      "label": "request",
+      "variant": "emphasis"
+    },
+    {
+      "from": "hooks",
+      "to": "entry",
+      "label": "context",
+      "variant": "dashed"
+    },
+    {
+      "from": "entry",
+      "to": "scripts",
+      "label": "profile.sh root"
+    },
+    {
+      "from": "entry",
+      "to": "agents",
+      "label": "dispatches",
+      "variant": "dashed"
+    },
+    {
+      "from": "entry",
+      "to": "design"
+    },
+    {
+      "from": "entry",
+      "to": "plan",
+      "label": "routes",
+      "variant": "emphasis"
+    },
+    {
+      "from": "entry",
+      "to": "build"
+    },
+    {
+      "from": "entry",
+      "to": "ship"
+    },
+    {
+      "from": "design",
+      "to": "artifacts",
+      "label": "publishes"
+    },
+    {
+      "from": "plan",
+      "to": "artifacts",
+      "label": "spec pages"
+    },
+    {
+      "from": "plan",
+      "to": "memory",
+      "label": "writes"
+    },
+    {
+      "from": "build",
+      "to": "repo",
+      "label": "code+tests"
+    },
+    {
+      "from": "ship",
+      "to": "repo",
+      "label": "configs"
+    }
+  ]
+}

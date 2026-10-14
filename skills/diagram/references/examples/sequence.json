@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Place order — happy path",
+    "lang": "en",
+    "description": "One request from the customer to a confirmed order: the API stores first, charges second, answers last."
+  },
+  "participants": [
+    { "id": "customer", "label": "Customer", "type": "actor" },
+    { "id": "web", "label": "Web app", "type": "frontend" },
+    { "id": "api", "label": "API", "type": "backend" },
+    { "id": "db", "label": "Postgres", "type": "database" },
+    { "id": "pay", "label": "Payments", "type": "external" }
+  ],
+  "messages": [
+    { "from": "customer", "to": "web", "label": "Pay" },
+    { "from": "web", "to": "api", "label": "POST /orders", "variant": "emphasis" },
+    { "from": "api", "to": "db", "label": "insert order" },
+    { "from": "db", "to": "api", "label": "order id", "variant": "return" },
+    { "from": "api", "to": "pay", "label": "charge card", "variant": "security" },
+    { "from": "pay", "to": "api", "label": "approved", "variant": "return" },
+    { "from": "api", "to": "db", "label": "mark paid" },
+    { "from": "api", "to": "web", "label": "201 order id", "variant": "return" },
+    { "from": "web", "to": "customer", "label": "confirmation", "variant": "return", "note": "receipt emailed later" }
+  ]
+}

@@ -8,3 +8,8 @@ included with any redistribution of this work or derivative works.
 Third-party components installed by hyperui keep their own licenses:
 HyperFrames (Apache-2.0), Impeccable, UI UX Pro Max, 21st.dev, Motion,
 Anthropic frontend-design.
+
+Portions of skills/diagram and scripts/diagram-check.mjs (geometry, text-fit and port-spread
+helpers) are adapted from Archify (https://github.com/tt-a1i/archify, commit bb990b1),
+MIT License, Copyright (c) 2026 tt-a1i (Archify), Copyright (c) 2025 Cocoon AI.
+The full licence text is in skills/diagram/LICENSE-archify.

@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Order — lifecycle",
+    "lang": "en",
+    "description": "Forward transitions run left to right on the middle row; waits sit above, failures below in their own lane."
+  },
+  "layout": { "cols": 5, "gapY": 72 },
+  "states": [
+    { "id": "created", "type": "start", "label": "Created", "row": 1, "col": 0 },
+    { "id": "paid", "type": "active", "label": "Paid", "row": 1, "col": 1 },
+    { "id": "packed", "type": "active", "label": "Packed", "row": 1, "col": 2 },
+    { "id": "shipped", "type": "active", "label": "Shipped", "row": 1, "col": 3 },
+    { "id": "delivered", "type": "success", "label": "Delivered", "row": 1, "col": 4 },
+    { "id": "awaiting_stock", "type": "waiting", "label": "Awaiting stock", "row": 0, "col": 2 },
+    { "id": "payment_failed", "type": "failure", "label": "Payment failed", "row": 2, "col": 1 },
+    { "id": "cancelled", "type": "failure", "label": "Cancelled", "row": 2, "col": 2 }
+  ],
+  "groups": [
+    { "id": "exceptions", "label": "Exceptions", "kind": "lane", "wraps": ["payment_failed", "cancelled"] }
+  ],
+  "transitions": [
+    { "from": "created", "to": "paid", "label": "pay", "variant": "emphasis" },
+    { "from": "paid", "to": "packed", "label": "pack", "variant": "emphasis" },
+    { "from": "packed", "to": "shipped", "label": "ship", "variant": "emphasis" },
+    { "from": "shipped", "to": "delivered", "label": "deliver", "variant": "emphasis" },
+    { "from": "created", "to": "payment_failed", "label": "card declined" },
+    { "from": "payment_failed", "to": "paid", "label": "retry", "variant": "return" },
+    { "from": "paid", "to": "awaiting_stock", "label": "no stock", "variant": "dashed" },
+    { "from": "awaiting_stock", "to": "packed", "label": "restocked", "variant": "dashed" },
+    { "from": "packed", "to": "cancelled", "label": "cancel" }
+  ]
+}

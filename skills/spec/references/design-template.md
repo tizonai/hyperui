@@ -27,6 +27,7 @@ Traits that can appear in any shape: **state lifecycle** (an entity moves throug
 | `stateDiagram-v2` | lifecycle trait — one per entity with states |
 | `erDiagram` | multi-table trait — complements the column table, never replaces it |
 | `C4Container` / `flowchart` | multi-service or new platform — services, queues, databases |
+| **`diagram` specialist** (typed IR → `.hyperui/diagrams/<name>.json` + viewer + `.mmd`) | backend + UI, multi-service or new platform: the architecture view and the happy-path sequence are authored with `hyperui:diagram` instead of inline Mermaid; link the JSON path and the artifact url in `## Diagrams` |
 
 Propose: "Based on the requirements this is a <shape> change. I'd include <set>. Different?"
 
@@ -108,6 +109,10 @@ sequenceDiagram
 <diagram>
 
 ### <Lifecycle / data / containers — if in the confirmed set>
+
+### Authored diagrams                 <!-- when the diagram specialist produced them -->
+<One line each: `<name> · <type> · .hyperui/diagrams/<name>.json · <artifact url> · validated <date>`;
+the JSON is what critique, patterns and build read — never paste the SVG here.>
 
 ## Decisions (ADR-lite)
 <One block per trade-off, also appended as one line each to `.hyperui/decisions.md`:>

@@ -12,6 +12,7 @@
 - `examples/dashboard-ventas.png` — 1280×1400 headless-Chrome screenshot of `examples/dashboard-ventas.html` (output of the `viz` skill in a test run, data in `ventas.csv`).
 - `examples/directions-strip.png` — 1800×669 composite of `examples/{ledger,monolith,atelier}-1280.png`, each scaled to 568 px wide, 24 px gutters on #0b0d12, built with Python Pillow.
 - `examples/*-1280.png`, `*-390.png` — design-direction screenshots (desktop / mobile) from a test run of the `design` skill.
+- `examples/hyperui-architecture.png` — 1280×780 headless-Chrome screenshot (light, `?theme=light`) of `.hyperui/diagrams/hyperui-architecture.html`, the plugin's own architecture rendered by `node scripts/diagram-check.mjs render .hyperui/diagrams/hyperui-architecture.json`. Regenerate after any change to the IR or the viewer template.
 
 Regenerate a PNG: `"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --hide-scrollbars --force-device-scale-factor=2 --window-size=520,120 --screenshot=out.png file:///path/to/page.html` (wrap a forced-scheme copy of the SVG in an `<img>` page for the logo; use scale 1 and 1280,1400 for the dashboard).
 Rebuild the strip: in a venv with `pillow`, open the three `-1280.png`, `resize((568, 621))`, paste at x = 24 + i·592, y = 24 on an 1800×669 `#0b0d12` canvas.

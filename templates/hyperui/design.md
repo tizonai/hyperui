@@ -30,6 +30,10 @@
 
 <!-- One line: names of the directions not picked and why. -->
 
+## Diagrams
+
+<!-- Written by the diagram specialist (also from spec's design phase). One line per diagram, updated in place: `<name> · <type> · .hyperui/diagrams/<name>.json · <artifact url or .html path> · validated <date> (<n> repairs)` — or `gap: <codes>` when the validator still reports errors after two repairs. The JSON is the source of truth other specialists read. -->
+
 ## Browser evidence
 
 <!-- Appended by design/build/motion/viz per skills/design/references/browser-verify.md: date · tool (Claude in Chrome | Playwright MCP | headless Chrome) · url/file · 360/768/1280 light+dark pass/fail · interaction (gif) · checks. Absent = not visually verified. -->

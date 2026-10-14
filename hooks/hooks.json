@@ -1,5 +1,5 @@
 {
-  "description": "hyperui: introduce hyperui on the first session in a project without .hyperui/ (root resolved by profile.sh, so a directory remembered as working on another repo is handled) and fire the opt-in telemetry flush in the background (scripts/telemetry.sh flush: no-op without consent); pre-approve the plugin's own skills, reference reads, profile.sh, update-check.sh, verify-deploy.sh, telemetry.sh and .hyperui/ writes under the resolved root(s) (see scripts/permit.sh)",
+  "description": "hyperui: introduce hyperui on the first session in a project without .hyperui/ (root resolved by profile.sh, so a directory remembered as working on another repo is handled) and fire the opt-in telemetry flush in the background (scripts/telemetry.sh flush: no-op without consent); pre-approve the plugin's own skills, reference reads, profile.sh, update-check.sh, verify-deploy.sh, telemetry.sh, node diagram-check.mjs and .hyperui/ writes under the resolved root(s) (see scripts/permit.sh)",
   "hooks": {
     "SessionStart": [
       {

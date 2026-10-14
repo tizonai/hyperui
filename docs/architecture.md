@@ -25,6 +25,7 @@ hyperui/
 │   ├── setup/  doctor/      # manual (disable-model-invocation: true)
 │   ├── design/    references/{sources,browser-verify,version-stamp}.md   # browser-verify: seen-in-Chrome evidence rule
 │   ├── critique/  references/{checklist,repair-model,conversion-lens,severity-and-report,sources}.md   # heuristic evaluation vs the goal
+│   ├── diagram/   schema.json, references/{authoring,diagnostics}.md, references/examples/*.json, LICENSE-archify   # typed IR → validator → viewer
 │   ├── motion/    references/sources.md
 │   ├── video/     references/sources.md
 │   ├── spec/      references/{prd,requirements,design,tasks,sdd-lite}-template.md
@@ -36,12 +37,14 @@ hyperui/
 │   ├── viz/       references/{munzner-procedure,question-to-idiom,munzner-references,munzner-pitfalls,channel-effectiveness}.md
 │   └── git/       references/{conventional-commits,pr-template,release,hotfix,branching}.md
 ├── templates/hyperui/       # seeds for .hyperui/: profile brief state decisions design ship (.md)
+├── templates/diagram/       # viewer.html — the self-contained diagram viewer (< 60 KB) filled by diagram-check.mjs render
 ├── scripts/
 │   ├── setup.sh  doctor.sh  # install / report the third-party stack
 │   ├── welcome.sh           # SessionStart: intro when <root>/.hyperui/ is missing, one routing line otherwise, + update offer; fires telemetry.sh flush in the background
 │   ├── update-check.sh      # daily check of plugin.json on GitHub main (24 h cache, --decline <v>, silent offline)
 │   ├── telemetry.sh         # opt-in anonymous usage events: status | consent | event | flush | purge (allowlist, daily POST, 3 s)
-│   ├── permit.sh            # PreToolUse: allow hyperui:* skills, reference reads, profile.sh, update-check.sh, verify-deploy.sh, telemetry.sh, <root>/.hyperui/ writes
+│   ├── permit.sh            # PreToolUse: allow hyperui:* skills, reference reads, profile.sh, update-check.sh, verify-deploy.sh, telemetry.sh, node diagram-check.mjs, <root>/.hyperui/ writes
+│   ├── diagram-check.mjs    # validate | render | mermaid | from-mermaid | --self-test — the diagram IR toolchain (Node ≥ 20, zero deps)
 │   ├── verify-deploy.sh     # after a deploy: /version.json → <meta app-version> → footer text vs the expected version; polls 30 s × 10 min
 │   ├── profile.sh           # init | get | set | private | user-get | user-set | path | root | roots | root-set | root-clear
 │   └── check.sh             # quality + company-agnostic gate
@@ -57,6 +60,7 @@ Each specialist, one line:
 - `motion` — animation recipes on the chosen tokens; reduced motion always honored.
 - `video` — promo/demo clip with HyperFrames from the project's real tokens; only when asked.
 - `spec` — gated PRD → requirements → design → tasks, or a one-file SDD-lite, in `.hyperui/spec/`.
+- `diagram` — architecture, flow, sequence, data-flow and lifecycle diagrams: typed JSON IR in `.hyperui/diagrams/`, placed by the agent, measured by `scripts/diagram-check.mjs` (≤ 2 focused repairs), shown in the self-contained viewer, exported to Mermaid; the JSON is what other specialists read.
 - `build` — one task at a time, test first, language rules, official docs MCPs over memory.
 - `review` — security + complexity + safety on hyperui's own output before "done".
 - `patterns` — DDD/CQRS/hexagonal/GoF/resilience only when the spec has the force; else "none".
@@ -77,7 +81,7 @@ flowchart TD
   M -- "profile present" --> A["Detect or confirm archetype, tone, languages"]
   A --> R{"Route by intent"}
   R --> S1["design / critique / motion / video"]
-  R --> S2["spec / patterns / viz"]
+  R --> S2["spec / diagram / patterns / viz"]
   R --> S3["build"]
   R --> S4["ship / infra / git"]
   S1 --> MEM[".hyperui/ memory files"]
@@ -127,6 +131,12 @@ commit, merge or push question on UI work without the local URL (dev server left
 the screenshots (artifact or paths) and one line "what to look at" in the same reply; `git` checks the
 evidence exists before proposing a commit of UI changes. `/hyperui:doctor` shows the three browser rows
 (Claude in Chrome is per-session and reported as `unknown` from the shell, honestly).
+
+A **diagram gate** keeps pictures honest: a diagram is never delivered without `0 errors` from
+`scripts/diagram-check.mjs validate` — schema, cells, overlaps, text fit, edges through nodes, side
+direction, crossings (warning), labels, canvas, readability at 1440 px, node budget (warning) — or an
+explicitly declared gap after at most two focused repairs; `render` refuses while errors remain, and
+the care line says `diagram validated` only on a clean run (see [Diagrams](#diagrams)).
 
 A **critique gate** sits in front of the user's eyes (`skills/critique/references/checklist.md`): every design direction before it is
 presented and every UI before "done" gets the quick pass (cognitive load, match/consistency, feedback states, recovery paths, platform
@@ -196,6 +206,59 @@ no-op until `user.md` holds `telemetry: yes`. State lives in the per-machine dat
   under `.hyperui/`. The script writes only under the data dir. `permit.sh` and the root / closing
   specialists' `allowed-tools` pre-approve `telemetry.sh` like the other plugin scripts.
 
+## Diagrams
+
+The `diagram` specialist follows one principle, taken from Archify's measured experiment
+(`docs/research/archify-diagram-method.md`, MIT): **the agent places, the validator measures.** The
+agent writes a typed JSON (`skills/diagram/schema.json`: `architecture | flow | sequence | dataflow |
+lifecycle`, nodes on a `row`/`col` grid, groups for real boundaries, labelled edges) following
+`skills/diagram/references/authoring.md` (main path first, stores and branches beside their owner,
+returns through the free corridor, 8–12 nodes per view). `scripts/diagram-check.mjs` turns cells into
+pixels, assigns ports (midpoint, 14 px spread, aligned edges keep the midpoint), routes each edge
+(straight → L → Z/U → shortest orthogonal grid path) and runs the checks in repair order; every finding
+is `{code, severity, message, subject, evidence, supportedFixes}` (`references/diagnostics.md`).
+`render` fills `templates/diagram/viewer.html` — inline SVG, colours only through tokens (three-block
+light/dark theme, `meta.tokens` from the project's `design.md`), `data-node-*`/`data-edge-*` facts,
+focus and BFS reach over the authored edges only, `#focus=<id>&reach=up|down`, PNG 2× and SVG export,
+`tabindex`/`role`/`aria-label` on nodes — and embeds the IR; `mermaid` exports `flowchart LR`,
+`sequenceDiagram` or `stateDiagram-v2`; `from-mermaid` re-authors pasted Mermaid into an IR skeleton.
+Output is deterministic (same IR → same bytes).
+
+The plugin's own architecture, authored with that skill (`.hyperui/diagrams/hyperui-architecture.json`,
+viewer at `.hyperui/diagrams/hyperui-architecture.html`, screenshot in the README; 2 findings on the
+first pass, 0 after one repair):
+
+```mermaid
+flowchart LR
+  subgraph your_repo ["Your repo"]
+    memory[(".hyperui/")]
+    repo["Your code"]
+  end
+  hooks["Hooks"]
+  user(["You"])
+  scripts["Scripts"]
+  entry["/hyperui"]
+  agents["Agents"]
+  design["Design"]
+  plan["Plan"]
+  build["Build"]
+  ship["Ship"]
+  artifacts>"Claude artifacts"]
+  user ==>|"request"| entry
+  hooks -.->|"context"| entry
+  entry -->|"profile.sh root"| scripts
+  entry -.->|"dispatches"| agents
+  entry --> design
+  entry ==>|"routes"| plan
+  entry --> build
+  entry --> ship
+  design -->|"publishes"| artifacts
+  plan -->|"spec pages"| artifacts
+  plan -->|"writes"| memory
+  build -->|"code+tests"| repo
+  ship -->|"configs"| repo
+```
+
 ## Memory model
 
 **Project root.** Every `profile.sh` command, the hooks and every skill resolve the root first:
@@ -223,6 +286,7 @@ Per project, `<root>/.hyperui/` (seeded from `templates/hyperui/` by `profile.sh
 - `decisions.md` — ADR-lite, one line each: date · decision · why · source URL.
 - `state.md` — phase, next, open items; read first and updated at the end of every turn.
 - `ship.md` — the go-live checklist (domain, DNS, host, secrets, deploy, payments, email, monitoring).
+- `diagrams/` — one diagram per `<name>`: `<name>.json` (the typed IR, the source of truth), `<name>.html` (the self-contained viewer with the JSON embedded) and `<name>.mmd` (Mermaid export); each listed under `## Diagrams` in `design.md` and, when produced for a spec, under `## Diagrams` in `02-design.md`.
 - `critique/` — one report per critique (`<yyyy-mm-dd>-<target>.md` + the `.html` fallback page): goal, evidence, verdict, top 3, strengths, findings table, to-verify list; artifact urls in `state.md` `artifacts:`.
 - `evidence/<yyyy-mm-dd>/` — the browser captures the design, build and critique passes refer to.
 
@@ -254,8 +318,11 @@ itself and never guesses a URL: it comes from the provider's docs or `docs/resea
 `scripts/check.sh` runs `claude plugin validate .`, `bash -n` on every script, a frontmatter
 lint (name + description everywhere; `user-invocable: false`, `allowed-tools` with the plugin-root
 Read and the profile.sh Bash rule, and the exact root preamble on specialists), a `## Sources`
-lint, an agents lint (`name`, `description`, `model` on every `agents/*.md`), and a grep that fails
-on employer- or team-specific strings. `.hyperui-gate` sets
+lint, an agents lint (`name`, `description`, `model` on every `agents/*.md`), `node --check` on
+`scripts/*.mjs`, the diagram toolchain's `--self-test` (38 cases: schema, layout, router, checks,
+render, Mermaid, output format), a viewer-size lint (every example render and every committed
+`.hyperui/diagrams/*.html` under 61440 bytes), the Archify attribution lint (`LICENSE-archify` +
+the `NOTICE` line), and a grep that fails on employer- or team-specific strings. `.hyperui-gate` sets
 `lenient` (warnings) or `strict` (failures) for the specialist lints. Run it before every commit.
 
 ## Hidden specialists and root loading
