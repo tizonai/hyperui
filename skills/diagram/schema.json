@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/tizonai/hyperui/skills/diagram/schema.json",
+  "title": "hyperui diagram IR (schema_version 1)",
+  "description": "One document per diagram. The JSON is the source of truth; the HTML viewer and the Mermaid export are derived from it. Unknown properties are rejected at every level. scripts/diagram-check.mjs reads this file and checks documents against it structurally (no ajv at runtime). The x-by-type block says which top-level arrays each diagram_type requires and allows.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "diagram_type", "meta"],
+  "properties": {
+    "schema_version": { "type": "integer", "enum": [1] },
+    "diagram_type": { "type": "string", "enum": ["architecture", "flow", "sequence", "dataflow", "lifecycle"] },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["title", "lang"],
+      "properties": {
+        "title": { "type": "string", "minLength": 1, "maxLength": 120 },
+        "lang": { "type": "string", "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$" },
+        "description": { "type": "string", "maxLength": 400 },
+        "related": { "type": "array", "items": { "type": "string", "minLength": 1 }, "maxItems": 12 },
+        "tokens": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "accent": { "type": "string", "pattern": "^#[0-9a-fA-F]{6}$" },
+            "font": { "type": "string", "minLength": 1, "maxLength": 200 }
+          }
+        }
+      }
+    },
+    "layout": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "cols": { "type": "integer", "minimum": 1, "maximum": 12 },
+        "cellW": { "type": "number", "minimum": 40, "maximum": 400 },
+        "cellH": { "type": "number", "minimum": 24, "maximum": 240 },
+        "gapX": { "type": "number", "minimum": 16, "maximum": 200 },
+        "gapY": { "type": "number", "minimum": 16, "maximum": 200 },
+        "origin": { "$ref": "#/$defs/point" }
+      }
+    },
+    "nodes": { "type": "array", "items": { "$ref": "#/$defs/node" }, "maxItems": 60 },
+    "groups": { "type": "array", "items": { "$ref": "#/$defs/group" }, "maxItems": 12 },
+    "edges": { "type": "array", "items": { "$ref": "#/$defs/edge" }, "maxItems": 120 },
+    "mainPath": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 2 },
+    "participants": { "type": "array", "items": { "$ref": "#/$defs/participant" }, "minItems": 2, "maxItems": 10 },
+    "messages": { "type": "array", "items": { "$ref": "#/$defs/message" }, "minItems": 1, "maxItems": 60 },
+    "states": { "type": "array", "items": { "$ref": "#/$defs/state" }, "minItems": 1, "maxItems": 40 },
+    "transitions": { "type": "array", "items": { "$ref": "#/$defs/edge" }, "maxItems": 80 }
+  },
+  "x-by-type": {
+    "architecture": { "required": ["nodes"], "allowed": ["nodes", "groups", "edges", "layout"] },
+    "flow": { "required": ["nodes"], "allowed": ["nodes", "groups", "edges", "layout", "mainPath"] },
+    "dataflow": { "required": ["nodes"], "allowed": ["nodes", "groups", "edges", "layout"] },
+    "lifecycle": { "required": ["states", "transitions"], "allowed": ["states", "transitions", "groups", "layout"] },
+    "sequence": { "required": ["participants", "messages"], "allowed": ["participants", "messages"] }
+  },
+  "x-defaults": {
+    "layout": { "cols": 6, "cellW": 140, "cellH": 64, "gapX": 96, "gapY": 56, "origin": [40, 80] },
+    "group.pad": 16,
+    "font": { "label": 13, "labelMin": 11, "sublabel": 10, "edge": 11, "groupTitle": 12 }
+  },
+  "$defs": {
+    "id": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_-]*$", "maxLength": 48 },
+    "point": {
+      "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 4000 }, "minItems": 2, "maxItems": 2
+    },
+    "side": { "type": "string", "enum": ["left", "right", "top", "bottom"] },
+    "componentType": {
+      "type": "string",
+      "enum": ["frontend", "backend", "database", "cloud", "security", "messagebus", "external", "actor"]
+    },
+    "stateType": { "type": "string", "enum": ["start", "active", "waiting", "decision", "success", "failure"] },
+    "edgeVariant": { "type": "string", "enum": ["default", "emphasis", "security", "dashed", "return"] },
+    "node": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "row", "col"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "$ref": "#/$defs/componentType" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "sublabel": { "type": "string", "maxLength": 80 },
+        "row": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "col": { "type": "integer", "minimum": 0, "maximum": 11 },
+        "w": { "type": "number", "minimum": 40, "maximum": 600 },
+        "h": { "type": "number", "minimum": 24, "maximum": 300 },
+        "variant": { "type": "string", "enum": ["default", "emphasis"] }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "type", "label", "row", "col"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "type": { "$ref": "#/$defs/stateType" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "sublabel": { "type": "string", "maxLength": 80 },
+        "row": { "type": "integer", "minimum": 0, "maximum": 30 },
+        "col": { "type": "integer", "minimum": 0, "maximum": 11 },
+        "w": { "type": "number", "minimum": 40, "maximum": 600 },
+        "h": { "type": "number", "minimum": 24, "maximum": 300 }
+      }
+    },
+    "group": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "kind", "wraps"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "kind": { "type": "string", "enum": ["boundary", "lane", "stage"] },
+        "wraps": { "type": "array", "items": { "$ref": "#/$defs/id" }, "minItems": 1 },
+        "pad": { "type": "number", "minimum": 8, "maximum": 64 }
+      }
+    },
+    "edge": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "maxLength": 40 },
+        "variant": { "$ref": "#/$defs/edgeVariant" },
+        "fromSide": { "$ref": "#/$defs/side" },
+        "toSide": { "$ref": "#/$defs/side" },
+        "via": { "type": "array", "items": { "$ref": "#/$defs/point" }, "minItems": 1, "maxItems": 4 },
+        "labelAt": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "participant": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "label", "type"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 40 },
+        "sublabel": { "type": "string", "maxLength": 40 },
+        "type": { "$ref": "#/$defs/componentType" }
+      }
+    },
+    "message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["from", "to", "label"],
+      "properties": {
+        "id": { "$ref": "#/$defs/id" },
+        "from": { "$ref": "#/$defs/id" },
+        "to": { "$ref": "#/$defs/id" },
+        "label": { "type": "string", "minLength": 1, "maxLength": 60 },
+        "variant": { "$ref": "#/$defs/edgeVariant" },
+        "note": { "type": "string", "maxLength": 80 }
+      }
+    }
+  }
+}

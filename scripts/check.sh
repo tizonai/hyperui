@@ -26,6 +26,11 @@
 #   (e) company-agnostic grep           — no employer/team-specific strings anywhere in the
 #                                         repo (excluding .git, node_modules and this file,
 #                                         which necessarily contains the pattern)  (hard fail)
+#   (f) node --check scripts/*.mjs      — every Node script parses                (hard fail)
+#   (g) diagram self-test               — node scripts/diagram-check.mjs --self-test
+#                                         (schema, layout, router, render, mermaid) (hard fail)
+#   (h) archify attribution             — skills/diagram/LICENSE-archify holds the MIT text and
+#                                         NOTICE names Archify (adapted MIT helpers) (hard fail)
 #
 # Gate toggle (.hyperui-gate at the repo root):
 #   The file holds a single word on its first non-comment line:
@@ -132,6 +137,33 @@ for f in "${agent_files[@]}"; do
   done
 done
 [[ $ag_count -eq 0 ]] && ok "agents: name/description/model on ${#agent_files[@]} agents/*.md file(s) (gate: $GATE)"
+
+# (f) node --check on every Node script
+mjs=(scripts/*.mjs)
+nc_fail=0
+for f in "${mjs[@]}"; do
+  if ! err="$(node --check "$f" 2>&1)"; then bad "node --check $f: $err"; nc_fail=1; fi
+done
+[[ $nc_fail -eq 0 ]] && ok "node --check on ${#mjs[@]} script(s)"
+
+# (g) diagram toolchain self-test (TDD suite: fixtures inline + skills/diagram/references/examples)
+if [[ -f scripts/diagram-check.mjs ]]; then
+  if out="$(node scripts/diagram-check.mjs --self-test 2>&1)"; then
+    ok "diagram-check.mjs --self-test: $(printf '%s\n' "$out" | tail -n1 | sed 's/^self-test: //')"
+  else
+    bad "diagram-check.mjs --self-test failed:"
+    printf '%s\n' "$out" | grep -E '^(FAIL|self-test:)' | sed 's/^/        /'
+  fi
+fi
+
+# (h) archify attribution: full MIT text next to the skill + the NOTICE line
+if [[ -f skills/diagram/LICENSE-archify ]] && grep -q 'MIT License' skills/diagram/LICENSE-archify \
+   && grep -q 'Permission is hereby granted' skills/diagram/LICENSE-archify; then
+  ok "skills/diagram/LICENSE-archify holds the MIT text"
+else
+  bad "skills/diagram/LICENSE-archify missing or not the full MIT text"
+fi
+if grep -q 'Archify' NOTICE; then ok "NOTICE names Archify"; else bad "NOTICE lacks the Archify attribution line"; fi
 
 # (e) company-agnostic grep
 if hits="$(grep -rnIiE '\bolo\b|ubits|ololabs|engage-specs|OLO-[0-9]' \
