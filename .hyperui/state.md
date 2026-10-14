@@ -6,8 +6,8 @@
 <!-- iterations: fix rounds the current unit of work has taken (reset to 0 when a new unit starts); reported anonymously only with telemetry consent -->
 
 phase: ship
-next: 0.13.0 shipped (main, tag, plugin updated) → npm publish 0.13.0, then hotfix 0.13.1 (design before spec on UI, argued directions via critique, parallel dispatch from 2 tasks, npx update alias, npm trusted publishing)
-open: npm registry still at 0.12.0 until Javier runs the web-auth publish
+next: 0.13.1 shipped (main 9a4f77d, tag, plugin updated) → Javier: npm trusted publisher one-time setup on npmjs.com, then re-run the publish workflow (or web-auth publish once)
+open: npm registry at 0.12.0; first publish.yml run expected to fail until the trusted publisher is registered
 iterations: 1
 last_updated: 2026-10-14
 
