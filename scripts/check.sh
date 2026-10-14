@@ -29,6 +29,8 @@
 #   (f) node --check scripts/*.mjs      — every Node script parses                (hard fail)
 #   (g) diagram self-test               — node scripts/diagram-check.mjs --self-test
 #                                         (schema, layout, router, render, mermaid) (hard fail)
+#   (g2) spec-page self-test             — python3 scripts/spec-page.py --self-test
+#                                         (headings, toc, tables, mermaid, checklists, fragment/full) (hard fail)
 #   (h) archify attribution             — skills/diagram/LICENSE-archify holds the MIT text and
 #                                         NOTICE names Archify (adapted MIT helpers) (hard fail)
 #   (i) viewer size                     — every example IR renders to < 61440 bytes, and so does
@@ -155,6 +157,20 @@ if [[ -f scripts/diagram-check.mjs ]]; then
   else
     bad "diagram-check.mjs --self-test failed:"
     printf '%s\n' "$out" | grep -E '^(FAIL|self-test:)' | sed 's/^/        /'
+  fi
+fi
+
+# (g2) spec page converter self-test (standard library only; the template is read from the tree)
+if [[ -f scripts/spec-page.py ]]; then
+  if command -v python3 >/dev/null 2>&1; then
+    if out="$(python3 scripts/spec-page.py --self-test 2>&1)"; then
+      ok "spec-page.py --self-test: $(printf '%s\n' "$out" | tail -n1 | sed 's/^self-test: //')"
+    else
+      bad "spec-page.py --self-test failed:"
+      printf '%s\n' "$out" | grep -E '^(FAIL|self-test:)' | sed 's/^/        /'
+    fi
+  else
+    bad "python3 not found; cannot run 'scripts/spec-page.py --self-test'"
   fi
 fi
 

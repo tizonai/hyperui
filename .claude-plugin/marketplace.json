@@ -11,7 +11,7 @@
       "name": "hyperui",
       "source": "./",
       "description": "Product copilot for anything with a UI: one entry point (/hyperui) that profiles the user, shows designs before building, plans, builds with TDD, reviews security and complexity, and guides shipping and infra — with per-project memory in .hyperui/.",
-      "version": "0.13.0",
+      "version": "0.13.1",
       "category": "design"
     }
   ]

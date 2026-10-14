@@ -24,7 +24,7 @@
 
 ## Artifacts
 
-<!-- One URL per direction artifact shown to the user. -->
+<!-- One line per direction shown: name · URL · why it works (author + principle) · max critique severity vs the goal · recommended? -->
 
 ## Rejected directions
 

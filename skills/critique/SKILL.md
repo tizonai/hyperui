@@ -6,6 +6,7 @@ allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
   - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -91,8 +92,9 @@ not fair and tells the builder nothing about what to keep. Not seen → "to veri
 
 1. **Report** → `<root>/.hyperui/critique/<yyyy-mm-dd>-<target>.md` (template in `severity-and-report.md`; `<target>` = host or
    mock name, slugged). English. Sources section lists only the URLs from `references/sources.md` that the findings cite.
-2. **Artifact**: publish the same content as a page with `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-page-template.html`
-   following `skills/spec/references/spec-artifacts.md` (markdown → sections, TOC, `table-wrap`): title `Critique — <target>`,
+2. **Artifact**: publish the same content as a page: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py" <report.md>
+   <report>.html --suffix none --track critique --lang <lang> --root <root>` (the spec page template, rules in
+   `skills/spec/references/spec-artifacts.md`; hand-convert only without `python3`): title `Critique — <target>`,
    track `critique`, status `draft`, icon `document`. No Artifact tool (headless `-p`, evals) → write the filled template to
    `<root>/.hyperui/critique/<yyyy-mm-dd>-<target>.html` and give the path. Record it in `state.md` `artifacts:` as
    `critique/<yyyy-mm-dd>-<target>.md: <url or path>` and in the report's frontmatter `artifact_url`.
@@ -129,7 +131,8 @@ when a direction fails the quick pass twice.
 - **Every recommendation, in the reply and in the report, names its author/source** (Norman, Nielsen #n, ISO 9241-110,
   Shneiderman, Clark & Brennan, Munzner, Fogg, LIFT, Baymard, WCAG…). A finding without a named source is not a finding;
   if no listed source supports it, label it "my judgement" explicitly.
-- Never lecture, never pad: the finding, the evidence, the fix. Criticize the screen, not the person who made it.
+- Never lecture, never pad: one line per finding — evidence · fix · author + principle (required) — no preamble (root §5 token
+  economy). Criticize the screen, not the person who made it.
 - **Cite the principle's source** from `references/sources.md` (or a page opened this session); never invent a URL, never
   propagate the misreadings listed there (7±2 per screen, the 3-click rule, Fitts as "make it big", F-pattern as a goal…).
 - A claim about numbers (abandonment rates, CWV thresholds) carries its source; a number you could not verify is

@@ -11,16 +11,17 @@ and hand the result back for review. You never widen the scope to other tasks.
 
 ## Inputs you receive in the prompt
 
-The project root (absolute path), the task id or title, and whether other builders run in
-parallel (then you touch only this task's files and never run repo-wide formatters on files
-you did not change).
+The project root (absolute path), the task block verbatim from the spec, the design decision ids
+it depends on, the files you may touch, and whether other builders run in parallel (then you touch
+only this task's files and never run repo-wide formatters on files you did not change). Nothing
+else is sent, and you ask for nothing else.
 
 ## Procedure
 
 1. Read `<root>/.hyperui/profile.md`, `state.md`, `decisions.md` and `design.md` if present,
    then the task's block in `<root>/.hyperui/spec/*/03-tasks.md` or `<root>/.hyperui/spec/<topic>.md`
-   (SDD-lite). Its acceptance criteria become the tests. Never ask questions: a stated
-   assumption in your report replaces a question.
+   (SDD-lite). Its acceptance criteria become the tests. Never ask questions: an unknown the spec
+   does not settle goes in your report as `OPEN: <question>` (take the safest path meanwhile and name it).
 2. Load the rules: invoke the `hyperui:build` skill (it holds the language → `references/rules-<lang>.md`
    table, the TDD loop, the formatter/linter/test table and the safety list) and obey its
    **Rules for the Agent** blocks literally. Project conventions (eslint, golangci, analysis options) win.
@@ -46,7 +47,7 @@ you did not change).
    version changes, deleting files outside the task, schema drops, anything that costs money.
 5. Code, identifiers, comments and tests in English unless the profile says otherwise.
 
-## Report (≤ 8 lines, nothing else)
+## Report (≤ 8 lines — counts, blocking items and `OPEN:` items; nothing else)
 
 ```
 TASK-00N <title> — done | blocked: <why>
@@ -57,7 +58,7 @@ Care: <from: responsive · a11y · SEO · i18n · security · tests · performan
 Version: vX.Y.Z (<file>) + CHANGELOG line | pending (parallel) | n/a (docs/tests only, or versioning: off)
 Browser: <evidence path(s) · viewports · tool> | needs main-session browser check | n/a (no UI)
 Review: hand off these files to hyperui:reviewer
-Assumptions: <one line, or "none">
+OPEN: <unknowns the spec did not settle · the path taken meanwhile> | none
 ```
 
 ## Sources

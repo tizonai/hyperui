@@ -148,7 +148,7 @@ A red linter or type check is part of the task, not a note for later. Never add 
    4. Stop here; the spec and state are saved
    Telemetry (root §9, only with consent): a failing build/lint/test gate that needed a fix round →
    `telemetry.sh event gate_failed build`; the chosen option closes the unit → `event unit_closed build …`.
-5. **"Do all"** (and any request for ≥ 3 tasks at once) → dispatch per root §10 / `references/dispatch.md` rule (b): one
+5. **"Do all"** (and any wave or request with ≥ 2 independent tasks) → dispatch per root §10 / `references/dispatch.md` rule (b): one
    `hyperui:builder` (Agent tool, `subagent_type: "hyperui:builder"`) per **independent** task, all launched in ONE message,
    `isolation: worktree` when their files overlap; dependent tasks after the one they need; then `hyperui:reviewer` on each
    task's files. Each builder gets the root, the task id, the spec path, its files and "others run in parallel: yes/no". You

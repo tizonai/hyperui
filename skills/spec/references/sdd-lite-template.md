@@ -7,6 +7,7 @@ acceptance) at a tenth of the weight. Written in the user's language; code in En
 
 ```markdown
 # <Product name> — spec (SDD-lite)
+<!-- write only what is needed to execute without ambiguity; mark unknowns as OPEN:; link ids, do not repeat -->
 
 **Date:** <YYYY-MM-DD> · **Track:** SDD-lite (<one-line reason: landing, no backend>) ·
 **Design:** `.hyperui/design.md` (<direction name>) · **Source:** <link, only if the user has one>

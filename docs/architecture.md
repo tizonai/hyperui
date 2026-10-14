@@ -100,7 +100,7 @@ flowchart TD
 The entry skill decides, without asking, whether a job runs inline or in a subagent, in parallel, and
 on which model (root `SKILL.md` §10, rules in `references/dispatch.md`). A small edit, one task, one
 answer, and anything needing taste (architecture, spec, design direction) stay inline on the session
-model. "Do all remaining tasks" or three or more independent tasks launch one `hyperui:builder` per
+model. "Do all remaining tasks" or a wave with two or more independent tasks launch one `hyperui:builder` per
 task in a single message (`isolation: worktree` when their files overlap), then a `hyperui:reviewer`
 per task; dependent tasks run in sequence. Lookups go to `hyperui:researcher` (`haiku`, returns facts
 with URLs), first contact with a repo to `hyperui:scout` (`haiku`, read-only). The agents live in

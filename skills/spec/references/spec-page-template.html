@@ -6,10 +6,17 @@
 <title>{{title}}</title>
 <meta name="description" content="{{description}}">
 <!--
-  hyperui spec page template. The model fills every double-brace placeholder (named below without
-  the braces, so a literal replace never touches this comment) and removes nothing else.
+  hyperui spec page template. Filled by scripts/spec-page.py (markdown in, page out); every
+  double-brace placeholder (named below without the braces, so a literal replace never touches this
+  comment) is replaced and nothing else changes. The script emits a FRAGMENT by default (title, meta
+  description, style, body content) because the Artifact tool wraps it in the document skeleton;
+  --full keeps this whole document for the no-Artifact fallback file. Artifact contract kept here:
+  colors as tokens on :root, dark mode under prefers-color-scheme guarded by :root:not([data-theme="light"])
+  and again under :root[data-theme="dark"], explicit body background, 16px side gutter, no horizontal
+  scroll at phone width, Mermaid from jsdelivr pinned to an exact version.
     lang         BCP-47 tag of the spec's language (es, en, …)
-    title        "<Topic> — PRD" | "<Topic> — Spec" | "Spec: <Topic>"
+    title        "<Topic> — PRD" | "<Topic> — Spec" | "Spec: <Topic>" — a name of 2–4 words; the
+                 explanation goes in description
     description  one sentence for the artifact card
     status       draft | in review | approved
     date         YYYY-MM-DD        track  SDD-lite | full · <phase>
@@ -172,7 +179,7 @@
   <p class="footer">Source of truth: the markdown in <code>.hyperui/spec/</code>. This page is regenerated on every revision.</p>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js"></script>
 <script>
 (function () {
   var root = document.documentElement, btn = document.getElementById('theme');

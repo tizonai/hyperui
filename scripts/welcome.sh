@@ -36,7 +36,7 @@ if printf '%s' "$UC" | grep -q '"update_available":true'; then
   DECLINED="$(json_str declined "$UC")"; NEW="$(json_str whats_new "$UC")"
   if [ -n "$LATEST" ] && [ "$LATEST" != "$DECLINED" ]; then
     WHATS=""; [ -n "$NEW" ] && WHATS=" What's new: $(esc "$NEW")"
-    UPDATE=" hyperui $(esc "$LATEST") is available (installed $(esc "$INSTALLED")).$WHATS In the first reply, offer in ONE line to update (claude plugin update hyperui@tizonai, then restart Claude Code) with a yes/later choice, summarizing what's new in that same line when given; if the user says later, run $(esc "$PLUGIN_ROOT")/scripts/update-check.sh --decline $(esc "$LATEST") and do not mention it again for that version."
+    UPDATE=" hyperui $(esc "$LATEST") is available (installed $(esc "$INSTALLED")).$WHATS In the first reply, offer in ONE line to update (npx @tizonai/hyperui update — or claude plugin update hyperui@tizonai — then restart Claude Code) with a yes/later choice, summarizing what's new in that same line when given; if the user says later, run $(esc "$PLUGIN_ROOT")/scripts/update-check.sh --decline $(esc "$LATEST") and do not mention it again for that version."
   fi
 fi
 

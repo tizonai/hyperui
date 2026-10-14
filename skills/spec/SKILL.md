@@ -1,11 +1,12 @@
 ---
 name: spec
-description: "Plan a product or change before building: gated PRD → requirements → design → tasks, or a one-file SDD-lite for small changes. Use after a design is picked or when the user asks to plan, scope, break down, or 'how do we build this' (planéalo, cómo lo hacemos, plan it, spec it) — any language. Reads .hyperui/profile.md, writes .hyperui/spec/."
+description: "Plan a product or change before building: gated PRD → requirements → design → tasks, or a one-file SDD-lite for small changes. Use after a design is picked or when the user asks to plan, scope, break down, or 'how do we build this' (planéalo, cómo lo hacemos, plan it, spec it) — any language; a change that touches UI gets `design` first, even when asked as a spec or SDD. Reads .hyperui/profile.md, writes .hyperui/spec/."
 user-invocable: false
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
   - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -34,6 +35,11 @@ costs minutes; fixing it after the code is written costs days.
    writes in; code, identifiers and commands stay in English.
 5. A ticket or doc tool (issue tracker, wiki) is **asked about only if the user mentions one**,
    and then only to paste its link in the spec header. Never assume one exists.
+6. **UI in scope** (screens, onboarding, components, layout, visual copy) and `design.md` holds no picked
+   direction → invoke `hyperui:design` (Skill tool; the request in the user's words + `lang=` + root) **before
+   writing anything**, even when the request says "SDD", "spec", "haz la spec": it shows 2–3 argued directions
+   and returns after the pick. The spec then starts from `design.md` (direction, tokens, type, signature) and
+   never invents the UI. Non-UI changes (backend, scripts, data) start here directly.
 
 ## 1. Pick the track by signals — state it in one line, let the user override
 
@@ -71,7 +77,8 @@ Given-When-Then acceptance) · **Design** (stack chosen, pages/sections, tokens 
 `design.md`, product languages/i18n, hosting intent, nothing invented) · **Tasks** (≤ 8,
 ordered, each with files, command, binary acceptance). Publish it as an artifact (section 6), then present it and ask once:
 "Does this match what you want? Anything to add or drop before I build the first task?" — as the
-gate choice (section 4), option 1 = "Approve and build task 1: <title>". Wait for approval. Revisions go in the same file under `## Revisions`.
+gate choice (section 4), option 1 = "Approve and build task 1: <title>" — or "Approve and build the first N independent
+tasks in parallel" when ≥ 2 tasks at the top depend on nothing (root §10). Wait for approval. Revisions go in the same file under `## Revisions`.
 
 ## 4. Full track (four files, four gates)
 
@@ -85,7 +92,8 @@ approved earlier file, say so and update that file too.
 consent line come right before it. Every gate question is asked as the entry skill's choice prompt (root §9:
 `AskUserQuestion`, else a numbered list as the LAST thing in the reply; options in the user's
 language), after the artifact link line, which stays unchanged:
-1. Approve and continue to <next phase> (Recommended) — after tasks: "Approve and start task 1: <title>"
+1. Approve and continue to <next phase> (Recommended) — after tasks: "Approve and build wave 1 in parallel (N tasks)"
+   when wave 1 has ≥ 2 independent tasks (root §10: one builder per task), else "Approve and start task 1: <title>"
 2. Change something in this phase (free text: tell me what)
 3. Skip ahead / switch to SDD-lite — offered only to `dev` and `senior`
 The answer → `state.md` `next:`; while waiting, `open:` holds `pending choice: <phase> gate`.
@@ -122,7 +130,9 @@ then write. **Backend + UI, multi-service or new-platform shapes produce their c
 diagram and the happy-path sequence with the `diagram` specialist** (typed IR validated by
 `scripts/diagram-check.mjs`, viewer published as an artifact, `.mmd` export): the JSON paths and the
 artifact urls go under `## Diagrams` in `02-design.md` and in `design.md`; the inline Mermaid stays for
-the small cases (≤ 6 nodes, no boundaries) and for the failure sequence when nobody will explore it. The design names: stack and framework with the why (non-tech: chosen for them,
+the small cases (≤ 6 nodes, no boundaries) and for the failure sequence when nobody will explore it. **Screens come from
+`design.md`'s picked direction** (direction, tokens, type, signature, artifact url) — cited, never redesigned here; UI in the
+shape and no direction yet → call `design` now (section 0.6) and continue after the pick. The design names: stack and framework with the why (non-tech: chosen for them,
 cited as in section 2), affected components with real paths, data model with a **column-level
 table** for every table created or changed, API contract if any, auth and personal-data
 handling resolved explicitly, product languages/i18n, errors, config and secrets
@@ -132,13 +142,13 @@ that also go to `decisions.md`. A new dependency is flagged, never installed her
 Gate: "This is the design. Does the approach hold? Any concerns before I split it into tasks?"
 
 ### Phase 4 — Tasks (`03-tasks.md`, `references/tasks-template.md`)
-Atomic tasks grouped in **waves** by dependency; each: files (real paths), exact commands,
-binary acceptance including build and tests green, the tests written first (happy, error, edge),
-depends-on. Mandatory tasks wherever the design requires them: migration, registration/wiring,
+Atomic tasks grouped in **waves** by dependency; each carries exactly: files touched (real paths), inputs, outputs,
+acceptance check (the tests written first — happy, error, edge — and the exact command that proves them green),
+depends-on, the REQ ids it covers — nothing else. Mandatory tasks wherever the design requires them: migration, registration/wiring,
 i18n strings, docs, tests. No task over one day — split it. The waves tell a parallel executor
 what can run together.
 Gate: "This is the plan. Does the breakdown look right? Anything to add, split or reorder?"
-After approval, hand off: one line proposing the first task (`build` runs it).
+After approval, hand off: one line proposing wave 1 in parallel (≥ 2 independent tasks, root §10) or the first task (`build` runs it).
 
 ## 5. Bug variant
 Phase 2 becomes `01-bug-analysis.md`: reported vs expected behavior, what must not change,
@@ -153,10 +163,12 @@ The user reads the spec in a page, not in the terminal. **After writing ANY spec
 gate question — never skip it, never leave it for later. Full rules and the markdown → HTML
 conversion: `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-artifacts.md`.
 
-1. Load the `artifact-design` skill when the session offers it. Convert the markdown to HTML
-   (headings, lists, tables, code, checklists; Mermaid as `<pre class="mermaid">` with its caption)
-   and fill `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-page-template.html` (header card,
-   sticky table of contents, dark mode, print). Read the template; never write a page from memory.
+1. Convert with the plugin's script (standard library only, nothing to install):
+   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py" <spec.md> <same name>.html --lang <lang> --root <root> --status <status> --approvals "<…>"`
+   — suffix and track come from the file name; `--full` for the fallback page of step 6. It fills
+   `skills/spec/references/spec-page-template.html` (header card, sticky TOC, dark mode, print; Mermaid as
+   `<pre class="mermaid">`) and writes the `.html` next to the markdown, a generated file never edited by hand.
+   `python3` missing → hand-convert per `spec-artifacts.md` into the template; never write a page from memory.
 2. Publish with the Artifact tool: title `<Topic> — PRD | Requirements | Design | Tasks` (full) or
    `<Topic> — Spec` (lite); icon `document`; **one artifact per file**. A revision republishes to
    the **same url** (`url` parameter) — never a second artifact for the same file.
@@ -182,6 +194,8 @@ conversion: `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-artifacts.md`.
   repo over "the system". Every diagram gets a 1–2 sentence caption. Cite ids with their gloss:
   `REQ-002 (checkout form validation)`, never bare. A section that does not apply says
   `N/A — reason`.
+- **Write to execute, not to persuade** (root §5 token economy): `OPEN: <question>` for every unknown, surfaced at the
+  gate, never closed by an assumption; link ids instead of repeating; no section that only restates another file.
 - Every spec file presented ends, before its gate choice, with the root §9 care line (what the spec already
   covers unasked: a11y · SEO · i18n · security · tests · performance · cost — only what the file truly contains).
 - After every gate: `.hyperui/state.md` → `phase: spec`, `next:` the next phase or first task,
