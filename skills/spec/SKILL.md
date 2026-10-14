@@ -142,9 +142,9 @@ that also go to `decisions.md`. A new dependency is flagged, never installed her
 Gate: "This is the design. Does the approach hold? Any concerns before I split it into tasks?"
 
 ### Phase 4 — Tasks (`03-tasks.md`, `references/tasks-template.md`)
-Atomic tasks grouped in **waves** by dependency; each: files (real paths), exact commands,
-binary acceptance including build and tests green, the tests written first (happy, error, edge),
-depends-on. Mandatory tasks wherever the design requires them: migration, registration/wiring,
+Atomic tasks grouped in **waves** by dependency; each carries exactly: files touched (real paths), inputs, outputs,
+acceptance check (the tests written first — happy, error, edge — and the exact command that proves them green),
+depends-on, the REQ ids it covers — nothing else. Mandatory tasks wherever the design requires them: migration, registration/wiring,
 i18n strings, docs, tests. No task over one day — split it. The waves tell a parallel executor
 what can run together.
 Gate: "This is the plan. Does the breakdown look right? Anything to add, split or reorder?"
@@ -194,6 +194,8 @@ conversion: `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-artifacts.md`.
   repo over "the system". Every diagram gets a 1–2 sentence caption. Cite ids with their gloss:
   `REQ-002 (checkout form validation)`, never bare. A section that does not apply says
   `N/A — reason`.
+- **Write to execute, not to persuade** (root §5 token economy): `OPEN: <question>` for every unknown, surfaced at the
+  gate, never closed by an assumption; link ids instead of repeating; no section that only restates another file.
 - Every spec file presented ends, before its gate choice, with the root §9 care line (what the spec already
   covers unasked: a11y · SEO · i18n · security · tests · performance · cost — only what the file truly contains).
 - After every gate: `.hyperui/state.md` → `phase: spec`, `next:` the next phase or first task,

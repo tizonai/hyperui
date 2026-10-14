@@ -35,6 +35,7 @@ Propose: "Based on the requirements this is a <shape> change. I'd include <set>.
 
 ````markdown
 # Design: <Product or change name>
+<!-- write only what is needed to execute without ambiguity; mark unknowns as OPEN:; link ids, do not repeat -->
 
 ## Glossary                      <!-- non-tech only: ≤ 6 terms used below -->
 

@@ -86,7 +86,8 @@ def convert(md):
             fence = None; continue
         if fence is not None:
             fence[1].append(ln); continue
-        if re.match(r"\*\*(Source|Date|Track|Design):\*\*", ln):
+        ln = re.sub(r"<!--.*?-->", "", ln).rstrip()
+        if re.match(r"\*\*(Source|Date|Track|Design):\*\*", ln) or (ln.strip() == "" and "<!--" in ln):
             continue
         if ln.startswith("|"):
             if re.match(r"^\|?\s*:?-{2,}", ln):
@@ -181,12 +182,13 @@ SELF_TEST_MD = """---
 artifact_url: https://claude.ai/artifact/x
 ---
 # Bakery landing
+<!-- write only what is needed to execute without ambiguity; mark unknowns as OPEN:; link ids, do not repeat -->
 
 **Date:** 2026-10-14 · **Track:** SDD-lite (landing, no backend) · **Design:** `.hyperui/design.md` (Warm Crust)
 
 A landing that gets *walk-in* orders from the neighbourhood.
 
-## 1. PRD
+## 1. PRD                      <!-- non-tech only -->
 - **Problem:** nobody finds the bakery online
 - **The ONE job:** call the shop
 
@@ -258,6 +260,7 @@ def self_test(tpl):
     ok("ordered list", "<ol>\n<li>first</li>\n<li>second</li>\n</ol>" in frag)
     ok("checklist unchecked and checked", '<input type="checkbox" disabled> <strong>TASK-001</strong>: hero' in frag and '<input type="checkbox" disabled checked> <strong>TASK-002</strong>: footer' in frag)
     ok("hr", "<hr>" in frag)
+    ok("html comments dropped (whole line and trailing)", "&lt;!--" not in frag and "<!--" not in frag.split("<style>")[0] and "<h2>1. PRD</h2>" in frag)
     ok("suffix and track defaults (lite)", "<title>Bakery landing — Spec</title>" in frag and "<dd>SDD-lite</dd>" in frag)
     ok("full-track suffix from the file name", build(SELF_TEST_MD, "00-prd.md", O, tpl)[0].count("Bakery landing — PRD") >= 2)
     ok("--suffix none keeps the title as written", "<title>Bakery landing</title>" in build(SELF_TEST_MD, "x.md", type("N", (O,), {"suffix": "none", "track": "critique"}), tpl)[0])

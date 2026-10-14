@@ -12,6 +12,7 @@ When the change is a small technical one, the whole file is `N/A — <one-line r
 
 ```markdown
 # PRD: <Product or change name>
+<!-- write only what is needed to execute without ambiguity; mark unknowns as OPEN:; link ids, do not repeat -->
 
 **Source:** <brief written here | summary of <doc title / ticket id> — link, only if the user has one>
 **Date:** <YYYY-MM-DD>

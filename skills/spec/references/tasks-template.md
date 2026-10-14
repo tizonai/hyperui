@@ -5,6 +5,7 @@ dependency. The waves tell a parallel executor what can run at the same time.
 
 ```markdown
 # Tasks: <Product or change name>
+<!-- write only what is needed to execute without ambiguity; mark unknowns as OPEN:; link ids, do not repeat -->
 
 ## Glossary                      <!-- non-tech only: ≤ 6 terms used below -->
 
@@ -14,12 +15,10 @@ dependency. The waves tell a parallel executor what can run at the same time.
 Tasks with no dependencies — they can run in parallel.
 
 - [ ] **TASK-001**: <Title>
-  - **What**: <specific enough to act on without asking>
   - **Files**: `<real/path>` (new / modified)
-  - **Tests first**: <the tests written before the code — happy path, the error case, the edge case>
-  - **Commands**: `<exact build command>` · `<exact test command>` (from the repo, never invented)
-  - **Acceptance**: <binary: what is true when it is done; build and tests green>
-  - **Covers**: REQ-001 (<title>)
+  - **Inputs → outputs**: <what it takes · what exists when it is done; specific enough to act on without asking>
+  - **Acceptance check**: <tests written first — happy, error, edge — · `<exact test command>` (from the repo, never invented) · green>
+  - **Covers**: REQ-001 (<title>) · design decision ids
   - **Depends on**: none
 
 ### Wave 2 — <Theme>
@@ -55,7 +54,7 @@ Depends on Wave 1.
 
 ## Self-review before presenting
 - [ ] Every design component maps to ≥ 1 task; no orphan task that traces to nothing
-- [ ] Every task has files, commands, tests-first list and binary acceptance
+- [ ] Every task has files, inputs → outputs, acceptance check (tests + command), covers, depends-on — and nothing else; unknowns as `OPEN:`
 - [ ] Wave dependencies are correct
 - [ ] Migration / wiring / i18n / docs / tests tasks exist wherever the design needs them
 - [ ] No task over one day

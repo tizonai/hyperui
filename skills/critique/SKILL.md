@@ -131,7 +131,8 @@ when a direction fails the quick pass twice.
 - **Every recommendation, in the reply and in the report, names its author/source** (Norman, Nielsen #n, ISO 9241-110,
   Shneiderman, Clark & Brennan, Munzner, Fogg, LIFT, Baymard, WCAG…). A finding without a named source is not a finding;
   if no listed source supports it, label it "my judgement" explicitly.
-- Never lecture, never pad: the finding, the evidence, the fix. Criticize the screen, not the person who made it.
+- Never lecture, never pad: one line per finding — evidence · fix · author + principle (required) — no preamble (root §5 token
+  economy). Criticize the screen, not the person who made it.
 - **Cite the principle's source** from `references/sources.md` (or a page opened this session); never invent a URL, never
   propagate the misreadings listed there (7±2 per screen, the 3-click rule, Fitts as "make it big", F-pattern as a goal…).
 - A claim about numbers (abandonment rates, CWV thresholds) carries its source; a number you could not verify is

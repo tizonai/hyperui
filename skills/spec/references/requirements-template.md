@@ -19,6 +19,7 @@ When = the action, Then = the observable result. Binary — pass or fail — nev
 
 ```markdown
 # Requirements: <Product or change name>
+<!-- write only what is needed to execute without ambiguity; mark unknowns as OPEN:; link ids, do not repeat -->
 
 Requirements use **EARS** notation: each one is a condition–behavior pair (WHEN something
 happens, THE SYSTEM SHALL do something observable).
