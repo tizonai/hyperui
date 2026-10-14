@@ -6,6 +6,7 @@ allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
   - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -91,8 +92,9 @@ not fair and tells the builder nothing about what to keep. Not seen → "to veri
 
 1. **Report** → `<root>/.hyperui/critique/<yyyy-mm-dd>-<target>.md` (template in `severity-and-report.md`; `<target>` = host or
    mock name, slugged). English. Sources section lists only the URLs from `references/sources.md` that the findings cite.
-2. **Artifact**: publish the same content as a page with `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-page-template.html`
-   following `skills/spec/references/spec-artifacts.md` (markdown → sections, TOC, `table-wrap`): title `Critique — <target>`,
+2. **Artifact**: publish the same content as a page: `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py" <report.md>
+   <report>.html --suffix none --track critique --lang <lang> --root <root>` (the spec page template, rules in
+   `skills/spec/references/spec-artifacts.md`; hand-convert only without `python3`): title `Critique — <target>`,
    track `critique`, status `draft`, icon `document`. No Artifact tool (headless `-p`, evals) → write the filled template to
    `<root>/.hyperui/critique/<yyyy-mm-dd>-<target>.html` and give the path. Record it in `state.md` `artifacts:` as
    `critique/<yyyy-mm-dd>-<target>.md: <url or path>` and in the report's frontmatter `artifact_url`.

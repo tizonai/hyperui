@@ -3,7 +3,19 @@
 The markdown in `.hyperui/spec/` is the source of truth; the artifact is how the user reads it.
 Template: `spec-page-template.html` (same folder). Fill every `{{placeholder}}`; change nothing else.
 
-## Markdown → HTML conversion (done by the model, no library)
+## Running the converter
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py" <spec.md> <same name>.html \
+  --lang <es|en|…> --root <project root> --status <draft|in review|approved> --approvals "PRD ✓ · Requirements — · …"
+```
+Standard library only (needs `python3`, nothing else). Suffix (`PRD`, `Requirements`, `Design`, `Tasks`, `Bug analysis`,
+else `Spec`) and track (`full · <suffix>` | `SDD-lite`) come from the file name; override with `--suffix` (`none` keeps the
+title as written) and `--track`; `--description` replaces the first paragraph. Default output is a **fragment** (title, meta
+description, style, body content) — the Artifact tool wraps it in the document skeleton — written next to the markdown
+(`00-prd.html`), a generated file never edited by hand; `--full` writes the whole document for the fallback below. Publish
+the output path. Hand-convert with the rules below **only if `python3` is missing**.
+
+## Markdown → HTML conversion (what the script does; by hand only without `python3`)
 - `#` title → `{{title}}` (not repeated in the body). Each `##` → `<section id="<slug>"><h2>…</h2>…</section>`;
   `###`/`####` → `<h3>`/`<h4>`. Slug = lowercase, hyphens, no accents (`2-requirements`, `glossary`).
 - `{{toc}}` = one `<li><a href="#<slug>">Heading</a></li>` per `##`, in order.
@@ -13,7 +25,8 @@ Template: `spec-page-template.html` (same folder). Fill every `{{placeholder}}`;
 - Fenced code → `<pre><code class="language-<lang>">` with `<`, `>`, `&` escaped.
 - ```` ```mermaid ```` → `<pre class="mermaid">` with the raw diagram text, un-escaped except `<`/`>`/`&`;
   its 1–2 sentence caption goes right after as `<p class="caption">`.
-- `N/A — reason` → `<p class="na">N/A — reason</p>`. The `**Date:** · **Track:**` header line feeds the
+- `> quote` → `<blockquote>`; `---` → `<hr>`.
+- `N/A — reason` → `<p class="na">N/A — reason</p>`. The `**Date:** · **Track:** · **Design:**` header line feeds the
   header card (`{{date}}`, `{{track}}`) and is dropped from the body. `## Revisions` stays last.
 - `{{lang}}` = the language the spec is written in; `{{description}}` = the PRD problem or the ONE job, one sentence.
 

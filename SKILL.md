@@ -8,6 +8,7 @@ allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/update-check.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/verify-deploy.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---

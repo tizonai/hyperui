@@ -6,6 +6,7 @@ allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
   - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
+  - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
   - Edit(.hyperui/**)
 ---
@@ -153,10 +154,12 @@ The user reads the spec in a page, not in the terminal. **After writing ANY spec
 gate question — never skip it, never leave it for later. Full rules and the markdown → HTML
 conversion: `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-artifacts.md`.
 
-1. Load the `artifact-design` skill when the session offers it. Convert the markdown to HTML
-   (headings, lists, tables, code, checklists; Mermaid as `<pre class="mermaid">` with its caption)
-   and fill `${CLAUDE_PLUGIN_ROOT}/skills/spec/references/spec-page-template.html` (header card,
-   sticky table of contents, dark mode, print). Read the template; never write a page from memory.
+1. Convert with the plugin's script (standard library only, nothing to install):
+   `python3 "${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py" <spec.md> <same name>.html --lang <lang> --root <root> --status <status> --approvals "<…>"`
+   — suffix and track come from the file name; `--full` for the fallback page of step 6. It fills
+   `skills/spec/references/spec-page-template.html` (header card, sticky TOC, dark mode, print; Mermaid as
+   `<pre class="mermaid">`) and writes the `.html` next to the markdown, a generated file never edited by hand.
+   `python3` missing → hand-convert per `spec-artifacts.md` into the template; never write a page from memory.
 2. Publish with the Artifact tool: title `<Topic> — PRD | Requirements | Design | Tasks` (full) or
    `<Topic> — Spec` (lite); icon `document`; **one artifact per file**. A revision republishes to
    the **same url** (`url` parameter) — never a second artifact for the same file.
