@@ -94,6 +94,7 @@ After setup the installed third-party skills are available too: `/motion`, `/hyp
 - **Critiques before it builds.** Every design direction and every finished UI goes through a heuristic evaluation grounded in the theory below (Norman, Nielsen, ISO 9241-110, Shneiderman, the conversation/repair model, cognitive load, a conversion lens by goal); severities 3–4 are fixed before you see the page. Ask "is this page good?" about any live site, mock or Figma export and you get the same critique as a report and an artifact: top 3 by impact on your goal, what is done well, a verdict.
 - **Sees what it built.** Opens the result in Chrome (Claude in Chrome, `claude --chrome`) or a headless browser at 360/768/1280, light and dark, and keeps the screenshots as evidence in `.hyperui/design.md` — it never says "looks right" without one, and says plainly when no browser tool was available. It shows before it asks: the dev server stays running and you get the local URL, the screenshots and "what to look at" before any approve/commit/merge question. TDD for everything, UI included: the component test is written before the component.
 - **Gated spec, read as artifacts.** PRD → requirements → design → tasks with approval between phases, or a one-file SDD-lite for small changes, in `.hyperui/spec/`. Every spec file is also published as a Claude artifact (a readable page with table of contents and rendered diagrams) the moment it is written, and the full track ends with one consolidated `Spec: <Topic>` artifact; without the Artifact tool the same page is written next to the markdown.
+- **Draws the architecture so people and agents can read it.** Ask for "the architecture diagram", a flow, a sequence, a data flow or a lifecycle and hyperui writes a typed JSON (the source of truth, in `.hyperui/diagrams/` of your repo), places every box itself — no auto-layout — and measures the result with a zero-dependency validator (overlaps, text that fits, edges through nodes, label room, readability at 1440 px; at most two focused repairs, then it says what is left). You get a self-contained viewer (click a node for its neighbours, upstream/downstream reach, light/dark, PNG/SVG export) and a Mermaid export for the README. `spec` uses it in the design phase; `critique` and `patterns` read the JSON instead of a drawing. See [Diagrams](#diagrams).
 - **Every step ends with a choice** (continue, do all, fix something, stop) — you never have to guess what to say next.
 - **Does the heavy lifting itself.** When a job is big — "do all the remaining tasks", three features at once, a docs or pricing lookup, a first look at your repo — hyperui decides alone whether to run it inline or in subagents, in parallel, and on which model. No new questions, no menus; experts see one discreet line ("3 tasks in parallel · reviewer after each"), everyone else just the result.
 - **Tells you what it took care of.** Every delivered piece ends with one line of what was handled unasked — responsive · a11y · SEO · i18n · security · tests · performance · dark mode · cost · sources — and any item expands on request.
@@ -166,6 +167,51 @@ hyperui does not judge a UI by taste. When it critiques a page or checks its own
 
 Popular misreadings are deliberately not applied: "7±2 items per screen", the 3-click rule, Fitts as "make everything big", the F-pattern as a layout goal, "always confirm destructive actions".
 
+## Diagrams
+
+<p align="center"><a href=".hyperui/diagrams/hyperui-architecture.html"><img src="docs/assets/examples/hyperui-architecture.png" width="100%" alt="hyperui architecture drawn by its own diagram specialist: You → /hyperui → Design, Plan, Build, Ship → Claude artifacts and the .hyperui/ memory inside your repo"></a></p>
+<p align="center"><b>hyperui, drawn by hyperui.</b> The plugin's own architecture, authored as a typed JSON, validated in one repair and rendered to the self-contained viewer (<a href=".hyperui/diagrams/hyperui-architecture.html">open it</a>: click a node, try <i>Downstream</i>, switch the theme, export a PNG). Source: <a href=".hyperui/diagrams/hyperui-architecture.json"><code>.hyperui/diagrams/hyperui-architecture.json</code></a>.</p>
+
+The idea is borrowed from [Archify](https://github.com/tt-a1i/archify) (MIT; method notes in [`docs/research/archify-diagram-method.md`](docs/research/archify-diagram-method.md)): **the agent places, the validator measures.** Mermaid's auto-layout stops reading well past 6–8 nodes, and a drawing is dead data for the next agent. So:
+
+1. **A typed JSON is the diagram** (`skills/diagram/schema.json`): five types — `architecture`, `flow`, `sequence`, `dataflow`, `lifecycle` — with nodes on a grid (`row`, `col`), groups for real boundaries, labelled edges. Unknown fields are rejected.
+2. **`scripts/diagram-check.mjs` validates it** (Node ≥ 20, no dependencies): schema → cells → overlaps → text fit → edges through nodes → side direction → crossings → labels → canvas → readability → node budget. Every finding has a code, the element, the measurement and the fixes (`skills/diagram/references/diagnostics.md`); the skill repairs at most twice, then reports the gap instead of looping.
+3. **`render` writes one HTML file under 60 KB** (`templates/diagram/viewer.html`): inline SVG, colours only through CSS tokens (light/dark, your `design.md` accent when it exists), focus and upstream/downstream reach over the authored edges only, `#focus=<id>` deep links, PNG 2× and SVG export, keyboard and screen-reader friendly nodes. The JSON travels inside the HTML.
+4. **`mermaid` exports the structure** for GitHub READMEs — this is the diagram above, as Mermaid:
+
+```mermaid
+flowchart LR
+  subgraph your_repo ["Your repo"]
+    memory[(".hyperui/")]
+    repo["Your code"]
+  end
+  hooks["Hooks"]
+  user(["You"])
+  scripts["Scripts"]
+  entry["/hyperui"]
+  agents["Agents"]
+  design["Design"]
+  plan["Plan"]
+  build["Build"]
+  ship["Ship"]
+  artifacts>"Claude artifacts"]
+  user ==>|"request"| entry
+  hooks -.->|"context"| entry
+  entry -->|"profile.sh root"| scripts
+  entry -.->|"dispatches"| agents
+  entry --> design
+  entry ==>|"routes"| plan
+  entry --> build
+  entry --> ship
+  design -->|"publishes"| artifacts
+  plan -->|"spec pages"| artifacts
+  plan -->|"writes"| memory
+  build -->|"code+tests"| repo
+  ship -->|"configs"| repo
+```
+
+Say "hazme el diagrama de arquitectura" and `/hyperui` routes it; experts call `/hyperui:diagram` directly. Diagrams are committed with the rest of `.hyperui/` in your repo, never in the plugin.
+
 ## Specialists
 
 Every specialist is hidden from the slash menu (`user-invocable: false`) and routed to automatically by `/hyperui`; call one by name if you want:
@@ -177,6 +223,7 @@ Every specialist is hidden from the slash menu (`user-invocable: false`) and rou
 | `/hyperui:motion` | Motion language: easing, durations, choreography, `motion` recipes. |
 | `/hyperui:video` | Promo/demo clip with HyperFrames from the project's real tokens and assets. |
 | `/hyperui:spec` | Gated PRD → requirements → design → tasks, or a one-file SDD-lite; every spec file shown as an artifact, plus a consolidated spec artifact at the end. |
+| `/hyperui:diagram` | Architecture, flow, sequence, data-flow and lifecycle diagrams: typed JSON IR → zero-dependency validator with repairs → interactive viewer (focus, reach, light/dark, PNG/SVG) + Mermaid export. The JSON is what the other specialists read. |
 | `/hyperui:build` | One task at a time: test first, per-language rules, official docs over memory. |
 | `/hyperui:review` | Security, complexity and safety pass before anything is called done. |
 | `/hyperui:patterns` | DDD, CQRS, hexagonal, GoF, resilience — only when the spec needs one. |
@@ -241,7 +288,7 @@ Node or python3 missing (or Node < 20)? `/hyperui:setup` prints the install line
 
 ### Network and permissions
 
-Outbound HTTPS to the official docs and provider pages the skills cite (`WebFetch` prompts for permission in default mode — expected), one daily `GET` of the plugin manifest on GitHub for the update check, and — only after you opt in — one daily `POST` to `tizonai.com/api/telemetry` (below). The plugin pre-approves only its own skills, its reference reads, its own scripts (`profile.sh`, `update-check.sh`, `verify-deploy.sh`, `telemetry.sh`) and writes under `<root>/.hyperui/`; everything else follows your normal Claude Code permissions.
+Outbound HTTPS to the official docs and provider pages the skills cite (`WebFetch` prompts for permission in default mode — expected), one daily `GET` of the plugin manifest on GitHub for the update check, and — only after you opt in — one daily `POST` to `tizonai.com/api/telemetry` (below). The plugin pre-approves only its own skills, its reference reads, its own scripts (`profile.sh`, `update-check.sh`, `verify-deploy.sh`, `telemetry.sh`, `node diagram-check.mjs`) and writes under `<root>/.hyperui/`; everything else follows your normal Claude Code permissions.
 
 ## Telemetry (opt-in, anonymous)
 
@@ -251,7 +298,7 @@ Outbound HTTPS to the official docs and provider pages the skills cite (`WebFetc
 
 ```
 {"install_id": "<random uuid4, minted on your first yes; not derived from anything>",
- "plugin_version": "0.12.0", "os": "darwin|linux", "claude_version": "2.1.288",
+ "plugin_version": "0.13.0", "os": "darwin|linux", "claude_version": "2.1.288",
  "events": [{"ts": "<ISO 8601>", "name": "unit_closed|feedback|gate_failed|critique|update_offer",
              "skill": "design|build|spec|ship|critique|viz|…", "props": {…}}]}
 ```
@@ -274,7 +321,7 @@ Outbound HTTPS to the official docs and provider pages the skills cite (`WebFetc
 ## Docs
 
 - [`docs/architecture.md`](docs/architecture.md) — how it fits together: component tree, flow, hooks, memory, the company-agnostic gate, evals, how to add a specialist. The spec lives in the author's workshop; its Addendum of as-built findings is summarized here.
-- [`docs/research/`](docs/research/README.md) — the source snapshots the skills are grounded in (providers and MCPs, engineering sources, HCI/UX foundations, Munzner).
+- [`docs/research/`](docs/research/README.md) — the source snapshots the skills are grounded in (providers and MCPs, engineering sources, HCI/UX foundations, Munzner, the Archify diagram method).
 - [`CHANGELOG.md`](CHANGELOG.md) — Keep a Changelog, SemVer.
 - [`docs/assets/README.md`](docs/assets/README.md) — how the logo, diagram, demo and example clips were produced.
 
@@ -289,7 +336,7 @@ claude plugin eval . --case <name> --runs 1 --ablation none --scaffold --allow-t
 claude plugin eval . --scaffold --allow-tools Bash Write Edit --no-publish --trust-plugin   # full suite: 3 runs + no-plugin baseline — only before a release
 ```
 
-`scripts/check.sh` runs `claude plugin validate .` (manifests + skills), `bash -n` on every script, the frontmatter and preamble lints, and the grep that fails on company-specific strings.
+`scripts/check.sh` runs `claude plugin validate .` (manifests + skills), `bash -n` on every script, the frontmatter and preamble lints, `node --check` and the diagram toolchain's `--self-test` (`node scripts/diagram-check.mjs --self-test`, 38 cases), the viewer-size (< 60 KB) and Archify-attribution lints, and the grep that fails on company-specific strings.
 
 Evals burn tokens: iterate with `--runs 1 --ablation none` (one with-plugin run, no baseline arm; add `--max-cost-usd 4` as a ceiling); the full suite (3 runs per case + the baseline arm) runs only before a release.
 
@@ -306,4 +353,4 @@ claude plugin update hyperui@tizonai
 
 ## License
 
-Apache License 2.0 — see [`LICENSE`](LICENSE); keep [`NOTICE`](NOTICE) (author attribution) in any redistribution. Third-party components keep their own licenses: [HyperFrames](https://github.com/heygen-com/hyperframes) (Apache-2.0), [Impeccable](https://github.com/pbakaus/impeccable), [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), [21st.dev](https://21st.dev), [frontend-design](https://github.com/anthropics/claude-plugins-official).
+Apache License 2.0 — see [`LICENSE`](LICENSE); keep [`NOTICE`](NOTICE) (author attribution) in any redistribution. Third-party components keep their own licenses: [HyperFrames](https://github.com/heygen-com/hyperframes) (Apache-2.0), [Impeccable](https://github.com/pbakaus/impeccable), [UI UX Pro Max](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill), [21st.dev](https://21st.dev), [frontend-design](https://github.com/anthropics/claude-plugins-official). The geometry, text-fit and port-spread helpers of the diagram validator are adapted from [Archify](https://github.com/tt-a1i/archify) (MIT, commit `bb990b1`; licence copy in [`skills/diagram/LICENSE-archify`](skills/diagram/LICENSE-archify)).

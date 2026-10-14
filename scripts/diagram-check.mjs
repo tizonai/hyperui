@@ -391,24 +391,28 @@ function lRoute(e) {
   if (!leaves(e.fromSide, p0, corner) || !leaves(e.toSide, p1, corner)) return null;
   return [p0, corner, p1];
 }
+// Two-bend routes. The middle line sits in the gap between the two boxes, pulled towards the source by
+// half the port offsets: in a fan-out the edge leaving the port farthest from the centre turns first, so
+// fan-out (and, mirrored, fan-in) edges never cross each other and never share a line.
 function zRoute(e) {
   const p0 = e.fromPort, p1 = e.toPort, f = e.fromNode, t = e.toNode;
-  const shift = ((e.fromOffset || 0) + (e.toOffset || 0)) / 2;
+  const pull = (Math.abs(e.fromOffset || 0) + Math.abs(e.toOffset || 0)) / 2;
+  const dir = e.fromSide === 'right' || e.fromSide === 'bottom' ? 1 : -1;
   const h = isHorizontalSide(e.fromSide);
   if (h !== isHorizontalSide(e.toSide)) return null;
   let pts;
   if (opposite(e.fromSide, e.toSide)) {
     if (h) {
       if (p0[1] === p1[1]) return null;
-      const mid = round2((e.fromSide === 'right' ? (f.x + f.w + t.x) / 2 : (t.x + t.w + f.x) / 2) + shift);
+      const mid = round2((e.fromSide === 'right' ? (f.x + f.w + t.x) / 2 : (t.x + t.w + f.x) / 2) - dir * pull);
       pts = [p0, [mid, p0[1]], [mid, p1[1]], p1];
     } else {
       if (p0[0] === p1[0]) return null;
-      const mid = round2((e.fromSide === 'bottom' ? (f.y + f.h + t.y) / 2 : (t.y + t.h + f.y) / 2) + shift);
+      const mid = round2((e.fromSide === 'bottom' ? (f.y + f.h + t.y) / 2 : (t.y + t.h + f.y) / 2) - dir * pull);
       pts = [p0, [p0[0], mid], [p1[0], mid], p1];
     }
   } else {
-    const bridge = 24 + Math.abs(shift);
+    const bridge = 24 + pull;
     if (h) {
       if (p0[1] === p1[1]) return null;
       const bx = e.fromSide === 'right' ? Math.max(f.x + f.w, t.x + t.w) + bridge : Math.min(f.x, t.x) - bridge;
@@ -1141,6 +1145,13 @@ export function selfTest() {
     const r = validateDocument(doc);
     const d = find(r, 'composition/proper-crossing'); assert(d, 'missing'); expectShape(d);
     assert(d.severity === 'warning' && errorsOf(r).length === 0, 'should be a warning only');
+  });
+  test('router: a fan-out of three Z routes from one side does not cross itself', () => {
+    const doc = arch({ nodes: [node('hub', 1, 0, { h: 96 }), node('t0', 0, 1), node('t1', 1, 1), node('t2', 2, 1), node('t3', 3, 1)],
+      edges: [{ from: 'hub', to: 't0' }, { from: 'hub', to: 't1' }, { from: 'hub', to: 't2' }, { from: 'hub', to: 't3' }] });
+    const r = validateDocument(doc);
+    assert(!find(r, 'composition/proper-crossing'), 'fan-out edges cross');
+    assert(errorsOf(r).length === 0, errorsOf(r).map((d) => d.message).join(' | '));
   });
   test('budget/too-many-nodes warns above 12 primary nodes', () => {
     const nodes = []; for (let i = 0; i < 14; i++) nodes.push(node(`n${i}`, Math.floor(i / 5), i % 5));

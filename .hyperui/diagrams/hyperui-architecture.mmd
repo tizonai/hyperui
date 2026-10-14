@@ -1,0 +1,28 @@
+flowchart LR
+  subgraph your_repo ["Your repo"]
+    memory[(".hyperui/")]
+    repo["Your code"]
+  end
+  hooks["Hooks"]
+  user(["You"])
+  scripts["Scripts"]
+  entry["/hyperui"]
+  agents["Agents"]
+  design["Design"]
+  plan["Plan"]
+  build["Build"]
+  ship["Ship"]
+  artifacts>"Claude artifacts"]
+  user ==>|"request"| entry
+  hooks -.->|"context"| entry
+  entry -->|"profile.sh root"| scripts
+  entry -.->|"dispatches"| agents
+  entry --> design
+  entry ==>|"routes"| plan
+  entry --> build
+  entry --> ship
+  design -->|"publishes"| artifacts
+  plan -->|"spec pages"| artifacts
+  plan -->|"writes"| memory
+  build -->|"code+tests"| repo
+  ship -->|"configs"| repo
