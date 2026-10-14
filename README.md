@@ -344,12 +344,17 @@ Evals burn tokens: iterate with `--runs 1 --ablation none` (one with-plugin run,
 
 hyperui checks once a day (at session start, 3-second timeout, silent offline) whether a newer version is on GitHub `main`; when there is one, the first reply offers it in one line — "yes" prints the two commands below, "later" silences the offer for that version (cache: `~/.claude/plugins/data/hyperui/update-check.json`).
 
-To release: bump `version` in `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` **and** `package.json` (`npm run version-check` compares the first and the last), push to `main`, then on each machine:
+On each machine:
 
 ```
-npx @tizonai/hyperui install              # re-running it updates the marketplace and the plugin
-claude plugin update hyperui@tizonai
+npx @tizonai/hyperui update               # = claude plugin marketplace update tizonai + claude plugin update hyperui@tizonai
 ```
+
+(`npx @tizonai/hyperui install` re-run does the same; `--dry-run` prints the two commands instead of running them.) Then restart Claude Code.
+
+## Releasing
+
+Bump `version` in `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json` **and** `package.json` (`npm run version-check` compares the first and the last), add the CHANGELOG entry, merge to `main`, then tag `hyperui--v<version>` and push the tag: [`.github/workflows/publish.yml`](.github/workflows/publish.yml) checks that the tag matches `package.json` and publishes to npm with `npm publish --provenance` via **trusted publishing** (OIDC, no token stored anywhere). One-time setup, on npmjs.com → package `@tizonai/hyperui` → Settings → *Publishing access* → add a trusted publisher: GitHub, repository `tizonai/hyperui`, workflow `publish.yml`. The plugin itself needs no publish step: Claude Code installs it from GitHub `main`.
 
 ## License
 

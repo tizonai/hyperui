@@ -1,0 +1,40 @@
+# Publishes @tizonai/hyperui to npm when a release tag is pushed. Trusted publishing (OIDC):
+# no NPM_TOKEN anywhere — npm trusts this workflow once it is registered as a trusted publisher
+# on npmjs.com (package Settings → Publishing access → GitHub tizonai/hyperui, publish.yml).
+name: Publish to npm
+
+on:
+  push:
+    tags:
+      - 'hyperui--v*'
+
+permissions:
+  id-token: write   # OIDC token for npm trusted publishing + provenance
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          registry-url: https://registry.npmjs.org
+
+      # Trusted publishing needs npm >= 11.5.1; Node 22 ships npm 10.
+      - name: Update npm
+        run: npm install -g npm@latest && npm --version
+
+      - name: Verify the tag matches package.json (and plugin.json)
+        run: |
+          tag="${GITHUB_REF_NAME#hyperui--v}"
+          pkg="$(node -p "require('./package.json').version")"
+          if [ "$tag" != "$pkg" ]; then
+            echo "::error::tag version $tag != package.json version $pkg"; exit 1
+          fi
+          npm run version-check
+
+      - name: Publish
+        run: npm publish --provenance --access public
