@@ -10,7 +10,7 @@ Summary in the root `SKILL.md` §10; this file holds the rules and the mechanics
 | | Situation | Dispatch |
 |---|---|---|
 | (a) | A small edit, ONE task, one answer, a fix | **Inline**, in the session, as today. |
-| (b) | "Do all remaining tasks" (build §7 option 2), or ≥ 3 independent tasks requested at once | One `hyperui:builder` per **independent** task, all launched in ONE message (parallel). Tasks whose files overlap → `isolation: worktree` on each; disjoint files → same tree. After each builder returns → `hyperui:reviewer` on its files (the reviewers can also run in parallel). Tasks that depend on another's output run **sequentially**, after it. |
+| (b) | A `03-tasks.md` wave with **≥ 2 independent tasks** (wave 1 is offered as the recommended option at the tasks gate), "Do all remaining tasks" (build §7 option 2), or ≥ 2 independent tasks requested at once | One `hyperui:builder` per **independent** task, all launched in ONE message (parallel). Tasks whose files overlap → `isolation: worktree` on each; disjoint files → same tree. After each builder returns → `hyperui:reviewer` on its files (the reviewers can also run in parallel). Tasks that depend on another's output run **sequentially**, after it. |
 | (c) | Docs, prices, free tiers, MCP servers, provider capabilities — anything §8 must ground | `hyperui:researcher`; the session quotes its facts with the URLs it returned, marks "(unverified)" what it could not open. |
 | (d) | First contact with a repo (onboarding §2, or a new root) | `hyperui:scout` for the stack facts; the session writes them with `profile.sh set`. A tiny repo (< 20 files) → inline `profile.sh inspect` is enough. |
 | (e) | Architecture, the spec, a design direction, copy, anything needing taste or the user's context | The **session model, inline**. Never delegated. |
@@ -18,7 +18,7 @@ Summary in the root `SKILL.md` §10; this file holds the rules and the mechanics
 | (g) | Visibility | `dev`/`senior`: ONE discreet line before the report ("3 tasks in parallel · reviewer after each"). `non-tech`: nothing but the result. Never the agent names, never a progress narration. |
 | (h) | The user overrides in words — "hazlo con sonnet", "use opus for this", "no uses subagentes", "do it yourself", "back to automatic" | Obey for the turn and store it: `profile.sh set dispatch <auto|inline|sonnet|opus|haiku>`; `auto` is the default. `inline` disables subagents; a model name makes it the per-invocation `model` for builders and reviewers. |
 
-The "do all" option in `skills/build/SKILL.md` §7 implements (b); a single task keeps the inline TDD loop.
+The "do all" option in `skills/build/SKILL.md` §7 and the spec's tasks-gate option implement (b); a single task keeps the inline TDD loop.
 
 ## Mechanics
 

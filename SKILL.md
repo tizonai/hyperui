@@ -107,11 +107,11 @@ words (never translated)** plus `lang=<conversation_language>` and the root, so 
 
 | Intent (examples, any language) | Specialist | Default behavior |
 |---|---|---|
-| New UI, landing, app screen, "rediseña", "que se vea premium" | `design` | **Show before build**: 2–3 directions as HTML artifacts (real copy, tokens, motion); use `/design` when the session offers it; ask for the pick; write `design.md` |
+| New UI, landing, app screen, onboarding, component, layout, visual copy, "rediseña", "que se vea premium" — **and any spec/SDD request that touches UI** | `design` | **Show before build, even when asked as "SDD", "spec", "haz la spec"**: 2–3 argued directions as HTML artifacts (real copy, tokens, motion; each with its "why it works", one recommended); use `/design` when the session offers it; ask for the pick; write `design.md`; `spec` then starts from the pick |
 | Animation, transitions, micro-interactions | `motion` | Recipes on the chosen tokens; reduced-motion always |
 | Promo, teaser, launch clip | `video` | Only if asked; HyperFrames via installed skills |
-| "Planéalo", "cómo lo hacemos", after a design pick | `spec` | SDD-lite for landings/small apps; full gated track for products with backend; every spec file is shown as an artifact, final consolidated spec artifact at the end |
-| "Hazlo", "implementa", a spec task | `build` | Rules per language, docs MCPs, TDD by default (UI too); then `review` inline; UI → browser evidence + Impeccable `audit`→`polish`; "do all" / ≥ 3 tasks → §10 |
+| "Planéalo", "cómo lo hacemos", "SDD", after a design pick; directly only for non-UI changes (backend, scripts, data) | `spec` | SDD-lite for landings/small apps; full gated track for products with backend; UI in scope without a picked direction → `design` first; every spec file is an artifact, consolidated spec artifact at the end |
+| "Hazlo", "implementa", a spec task | `build` | Rules per language, docs MCPs, TDD by default (UI too); then `review` inline; UI → browser evidence + Impeccable `audit`→`polish`; "do all" / a wave with ≥ 2 independent tasks → §10 |
 | "Revisa el código", after any build task | `review` | Security + complexity on the plugin's own output; fix blocking findings before "done" |
 | "Revisa / critica / audita / evalúa este diseño", "¿está bien esta página?", "qué opinas de", a mock, a competitor's site | `critique` | Heuristic evaluation with evidence (22 checks, repair model, conversion lens by goal); report + artifact; top 3 by impact on the goal. A designer's mock before building → `critique`, then `spec` |
 | Architecture: aggregates, consistency, external calls | `patterns` | Only when the spec calls for it; one line of why + source; never on a landing |
@@ -122,7 +122,7 @@ words (never translated)** plus `lang=<conversation_language>` and the root, so 
 | Commit, PR, release, hotfix, "súbelo a git" | `git` | Conventional Commits; SemVer bump + changelog line in every change's commit; no amend, no force-push |
 | "What can you do", "where do I start" | you | The journey in ≤ 6 lines; never a list of skill names |
 
-- **Several intents in one message** → journey order (design → spec → build → review → ship), said in one line.
+- **Several intents in one message** → journey order (design → spec → build → review → ship), said in one line; UI + spec words → `design` first.
 - **Several roots** (`profile.sh roots` prints more than one): a request naming a repo (path, folder name, role
   word web/mobile/api) runs there; ambiguous → ONE question ("which one: web or mobile?"); cross-cutting (shared
   identity, same auth) → the journey per repo in order, one summary. Pass the target root to the specialist in the Skill `args`.
@@ -208,8 +208,8 @@ dark mode · cost (free tier chosen) · sources cited · verified in Chrome (360
 ## 10. Dispatch (internal, never a question)
 
 hyperui decides alone when to use subagents, parallelism and which model — no menu, no question; rules in `${CLAUDE_PLUGIN_ROOT}/references/dispatch.md`.
-Inline: a small edit, one task, one answer, anything needing taste (architecture, spec, design direction). "Do all remaining tasks" or ≥ 3 independent tasks →
-one `hyperui:builder` (Agent tool, `subagent_type`) per independent task, in parallel (`isolation: worktree` when files overlap), then `hyperui:reviewer` per task;
+Inline: a small edit, one task, one answer, anything needing taste (architecture, spec, design direction). "Do all remaining tasks", a `03-tasks.md` wave with ≥ 2 independent
+tasks (wave 1 is offered at the tasks gate) or ≥ 2 independent tasks asked at once → one `hyperui:builder` (Agent tool, `subagent_type`) per task, in parallel (`isolation: worktree` when files overlap), then `hyperui:reviewer` per task;
 dependent tasks in sequence; UI tasks get their browser check in the session (subagents have no Chrome); parallel builders do not bump the version — the session bumps
 once for the batch. Lookups → `hyperui:researcher`; first contact with a repo → `hyperui:scout`; a named model unavailable → `inherit`. Experts get one discreet line
 ("3 tasks in parallel · reviewer after each"); non-tech only the result. Overrides in words ("hazlo con sonnet", "no uses subagentes") are obeyed and stored: `profile.sh set dispatch <auto|inline|sonnet|opus|haiku>` (`auto` default).

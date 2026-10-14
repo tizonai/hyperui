@@ -21,6 +21,8 @@ of view, a typographic identity and one thing people remember.
   `design.*`; also `.hyperui/brief.md` / `design.md` if present — build on the picked direction.
 - Reply in the conversation language; keep internal reasoning, code and files in English.
 - Tone per archetype: non-tech → one or two plain sentences per step, one question with a recommended answer; dev → the fact + one line of why; senior → the fact, ~12 lines max.
+- **Called from `spec`** (a UI change asked as a spec/SDD, or no picked direction in `design.md`): steps 1–2 only — brief and
+  argued directions — stop at the pick and return; tokens, components and motion come with the build. `spec` continues from `design.md`.
 
 ## 1. Preflight
 
@@ -45,16 +47,21 @@ a browser tool (`references/browser-verify.md` §1). Key ones missing → sugges
    available); when the session offers `/design` (Claude Design artboards), use it instead.
    No Artifact tool in the session → write `.hyperui/directions/<name>.html` and give the paths.
    Record every URL/path in `.hyperui/design.md`. **A browser tool in the session** (`references/browser-verify.md` §1) → open each
-   direction page and take one 1280 screenshot before presenting it (catches a broken page or a missing font). **Critique quick pass before
-   presenting** (`${CLAUDE_PLUGIN_ROOT}/skills/critique/references/checklist.md`): on each direction check cognitive load (one primary action,
-   hierarchy C11–C12), match and consistency (C3–C6), feedback states (C1–C2), recovery paths (C13–C16) and platform conventions (C6); fix
-   severity ≥ 3 before the user sees it. Present them as one line per direction (name ·
-   type pairing · palette · signature · link), then the pick as the entry skill's choice prompt
+   direction page and take one 1280 screenshot before presenting it (catches a broken page or a missing font). **Critique each direction
+   against the brief's ONE job before presenting** (`${CLAUDE_PLUGIN_ROOT}/skills/critique/references/checklist.md` quick pass — cognitive load
+   C11–C12, match and consistency C3–C6, feedback C1–C2, recovery C13–C16, platform C6 — plus the goal's row of
+   `skills/critique/references/conversion-lens.md`; data views: the Munzner pass): fix severity ≥ 3 before the user sees it and keep each
+   direction's **max severity vs the goal**. **Argued directions:** present one line per direction — name · type pairing · palette ·
+   signature · link · **why it works**: the author/principle it leans on, from the checklist's source column (Norman signifiers/mapping,
+   Nielsen #n, ISO 9241-110, Shneiderman, Clark & Brennan grounding, Munzner for data views, Fogg/LIFT for the conversion goal; cite
+   `skills/critique/references/sources.md`, never re-explain the theory). **Recommend the direction with the lowest max severity** and say why in
+   one sentence ("B: the only one with a single primary action above the fold — Nielsen #8, Fogg Ability"). Non-tech: same author
+   names, plain words (critique §6). No preamble. Then the pick as the entry skill's choice prompt
    (root §9: `AskUserQuestion`, else a numbered list as the LAST thing in the reply; user's language):
    the 2–3 direction names, the recommended one first with "(Recommended)" · "Mix / adjust a
    direction" (free text) · "Show me 2 more". With 3 directions in `AskUserQuestion` (4 options max),
    "Show me 2 more" goes through "Other". `state.md` `open:` holds `pending choice: direction pick`
-   until answered. The user picks before any build.
+   until answered. The user picks before any build. `design.md` records, per direction, the why line and the max severity.
 3. **Tokens before components.** Write CSS custom properties on `:root`: color *roles*
    (`--bg`, `--surface`, `--text`, `--muted`, `--accent`, `--border`), type scale, spacing, radius,
    elevation, motion durations and easings. Dark mode under `@media (prefers-color-scheme: dark)`

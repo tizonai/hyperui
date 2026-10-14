@@ -62,5 +62,5 @@ Depends on Wave 1.
 
 ## Gate and hand-off
 "This is the plan. Does the breakdown look right? Anything to add, split or reorder?"
-After approval: write `phase: build`, `next: TASK-001 (<title>)` to `.hyperui/state.md` and
-propose the first task in one line.
+After approval: write `phase: build`, `next: wave 1 (TASK-001, TASK-002)` or `next: TASK-001 (<title>)` to
+`.hyperui/state.md` and propose, in one line, wave 1 in parallel (≥ 2 independent tasks) or the first task.
