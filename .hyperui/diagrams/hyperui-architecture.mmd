@@ -6,16 +6,18 @@ flowchart LR
   hooks["Hooks"]
   user(["You"])
   scripts["Scripts"]
+  archify(["Archify"])
   entry["/hyperui"]
   agents["Agents"]
   design["Design"]
   plan["Plan"]
   build["Build"]
   ship["Ship"]
-  artifacts>"Claude artifacts"]
+  artifacts(["Claude artifacts"])
   user ==>|"request"| entry
   hooks -.->|"context"| entry
   entry -->|"profile.sh root"| scripts
+  scripts -->|"archify.sh run"| archify
   entry -.->|"dispatches"| agents
   entry --> design
   entry ==>|"routes"| plan

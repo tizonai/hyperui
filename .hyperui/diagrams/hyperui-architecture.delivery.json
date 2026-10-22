@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "29d5b390-96fa-47db-ac7e-d5f469405ae9",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "/Users/tizon/personal/hyperui/.hyperui/diagrams/hyperui-architecture.json",
+  "output": "/Users/tizon/personal/hyperui/.hyperui/diagrams/hyperui-architecture.html",
+  "specification": {
+    "sha256": "e3a55c03eb6ac8f83a9bb63104f41ddfd7c988ce4048d31d00d8b823999b12bc",
+    "bytes": 3891
+  },
+  "artifact": {
+    "sha256": "e6c4df736875e39a3e487e4c7e403f9a2761585aad0bf991c943ecfc6d7dd9b3",
+    "bytes": 834605
+  }
+}

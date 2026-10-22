@@ -5,6 +5,7 @@ user-invocable: false
 allowed-tools:
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/profile.sh *)
   - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/telemetry.sh *)
+  - Bash(${CLAUDE_PLUGIN_ROOT}/scripts/archify.sh *)
   - Bash(node ${CLAUDE_PLUGIN_ROOT}/scripts/diagram-check.mjs *)
   - Bash(python3 ${CLAUDE_PLUGIN_ROOT}/scripts/spec-page.py *)
   - Read(//${CLAUDE_PLUGIN_ROOT}/**)
@@ -127,8 +128,8 @@ platform; traits: state lifecycle, multi-table) and **propose** the diagram set 
 sequence always — happy path + most likely failure; flowchart for branching; stateDiagram for
 lifecycles; erDiagram for several tables; C4/flowchart for several services). One confirmation,
 then write. **Backend + UI, multi-service or new-platform shapes produce their container/architecture
-diagram and the happy-path sequence with the `diagram` specialist** (typed IR validated by
-`scripts/diagram-check.mjs`, viewer published as an artifact, `.mmd` export): the JSON paths and the
+diagram and the happy-path sequence with the `diagram` specialist** (Archify IR — types `architecture` +
+`sequence` — validated and rendered by Archify through `scripts/archify.sh`, HTML published as an artifact, `.mmd` export): the JSON paths and the
 artifact urls go under `## Diagrams` in `02-design.md` and in `design.md`; the inline Mermaid stays for
 the small cases (≤ 6 nodes, no boundaries) and for the failure sequence when nobody will explore it. **Screens come from
 `design.md`'s picked direction** (direction, tokens, type, signature, artifact url) — cited, never redesigned here; UI in the

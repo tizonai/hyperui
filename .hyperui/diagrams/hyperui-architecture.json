@@ -3,202 +3,43 @@
   "diagram_type": "architecture",
   "meta": {
     "title": "hyperui — how it fits together",
-    "lang": "en",
-    "description": "One visible entry routes each request to a hidden specialist; what they learn lands in .hyperui/ inside your repo, what they show goes to Claude artifacts.",
-    "related": [
-      "skills/diagram/references/examples/sequence.json"
-    ]
+    "subtitle": "One visible entry routes each request to a hidden specialist; what they learn lands in .hyperui/ inside your repo, what they show goes to Claude artifacts; diagrams are drawn by Archify.",
+    "output": "hyperui-architecture.html",
+    "locale": "en",
+    "quality_profile": "showcase"
   },
-  "layout": {
-    "cols": 4,
-    "cellW": 170,
-    "gapX": 120
-  },
-  "nodes": [
-    {
-      "id": "hooks",
-      "type": "security",
-      "label": "Hooks",
-      "sublabel": "welcome.sh · permit.sh",
-      "row": 0,
-      "col": 0
-    },
-    {
-      "id": "user",
-      "type": "actor",
-      "label": "You",
-      "sublabel": "any language",
-      "row": 1,
-      "col": 0,
-      "h": 96
-    },
-    {
-      "id": "scripts",
-      "type": "backend",
-      "label": "Scripts",
-      "sublabel": "profile · telemetry · diagram-check",
-      "row": 0,
-      "col": 1,
-      "w": 220
-    },
-    {
-      "id": "entry",
-      "type": "frontend",
-      "label": "/hyperui",
-      "sublabel": "entry skill · routes by intent",
-      "row": 1,
-      "col": 1,
-      "w": 220,
-      "h": 96
-    },
-    {
-      "id": "agents",
-      "type": "backend",
-      "label": "Agents",
-      "sublabel": "builder, reviewer, researcher, scout",
-      "row": 2,
-      "col": 1,
-      "w": 220
-    },
-    {
-      "id": "design",
-      "type": "frontend",
-      "label": "Design",
-      "sublabel": "design · critique · motion · video",
-      "row": 0,
-      "col": 2,
-      "w": 200
-    },
-    {
-      "id": "plan",
-      "type": "backend",
-      "label": "Plan",
-      "sublabel": "spec · diagram · patterns · viz",
-      "row": 1,
-      "col": 2,
-      "w": 200,
-      "h": 96
-    },
-    {
-      "id": "build",
-      "type": "backend",
-      "label": "Build",
-      "sublabel": "build · review",
-      "row": 2,
-      "col": 2
-    },
-    {
-      "id": "ship",
-      "type": "cloud",
-      "label": "Ship",
-      "sublabel": "ship · infra · git",
-      "row": 3,
-      "col": 2
-    },
-    {
-      "id": "artifacts",
-      "type": "external",
-      "label": "Claude artifacts",
-      "sublabel": "pages you explore",
-      "row": 0,
-      "col": 3
-    },
-    {
-      "id": "memory",
-      "type": "database",
-      "label": ".hyperui/",
-      "sublabel": "profile · state · spec · diagrams",
-      "row": 1,
-      "col": 3,
-      "w": 200,
-      "h": 96
-    },
-    {
-      "id": "repo",
-      "type": "cloud",
-      "label": "Your code",
-      "sublabel": "tests · docs · configs",
-      "row": 2,
-      "col": 3
-    }
+  "components": [
+    { "id": "hooks", "type": "security", "label": "Hooks", "sublabel": "welcome.sh · permit.sh", "pos": [40, 60], "size": [130, 60] },
+    { "id": "user", "type": "external", "label": "You", "sublabel": "any language", "pos": [40, 200], "size": [130, 60] },
+    { "id": "scripts", "type": "backend", "label": "Scripts", "sublabel": "profile · archify · telemetry", "pos": [40, 340], "size": [130, 60] },
+    { "id": "archify", "type": "external", "label": "Archify", "sublabel": "diagram engine (skill)", "pos": [40, 480], "size": [130, 60] },
+    { "id": "entry", "type": "frontend", "label": "/hyperui", "sublabel": "entry skill · routes by intent", "pos": [300, 200], "size": [170, 60] },
+    { "id": "agents", "type": "backend", "label": "Agents", "sublabel": "builder · reviewer · researcher · scout", "pos": [300, 340], "size": [170, 60] },
+    { "id": "design", "type": "frontend", "label": "Design", "sublabel": "design · critique · motion · video", "pos": [560, 60], "size": [170, 60] },
+    { "id": "plan", "type": "backend", "label": "Plan", "sublabel": "spec · diagram · patterns · viz", "pos": [560, 200], "size": [170, 60] },
+    { "id": "build", "type": "backend", "label": "Build", "sublabel": "build · review", "pos": [560, 340], "size": [170, 60] },
+    { "id": "ship", "type": "cloud", "label": "Ship", "sublabel": "ship · infra · git", "pos": [560, 480], "size": [170, 60] },
+    { "id": "artifacts", "type": "external", "label": "Claude artifacts", "sublabel": "pages you explore", "pos": [820, 60], "size": [150, 60] },
+    { "id": "memory", "type": "database", "label": ".hyperui/", "sublabel": "profile · state · spec · diagrams", "pos": [820, 200], "size": [150, 60] },
+    { "id": "repo", "type": "cloud", "label": "Your code", "sublabel": "tests · docs · configs", "pos": [820, 340], "size": [150, 60] }
   ],
-  "groups": [
-    {
-      "id": "your-repo",
-      "label": "Your repo",
-      "kind": "boundary",
-      "wraps": [
-        "memory",
-        "repo"
-      ]
-    }
+  "boundaries": [
+    { "kind": "region", "label": "Your repo", "wraps": ["memory", "repo"] }
   ],
-  "edges": [
-    {
-      "from": "user",
-      "to": "entry",
-      "label": "request",
-      "variant": "emphasis"
-    },
-    {
-      "from": "hooks",
-      "to": "entry",
-      "label": "context",
-      "variant": "dashed"
-    },
-    {
-      "from": "entry",
-      "to": "scripts",
-      "label": "profile.sh root"
-    },
-    {
-      "from": "entry",
-      "to": "agents",
-      "label": "dispatches",
-      "variant": "dashed"
-    },
-    {
-      "from": "entry",
-      "to": "design"
-    },
-    {
-      "from": "entry",
-      "to": "plan",
-      "label": "routes",
-      "variant": "emphasis"
-    },
-    {
-      "from": "entry",
-      "to": "build"
-    },
-    {
-      "from": "entry",
-      "to": "ship"
-    },
-    {
-      "from": "design",
-      "to": "artifacts",
-      "label": "publishes"
-    },
-    {
-      "from": "plan",
-      "to": "artifacts",
-      "label": "spec pages"
-    },
-    {
-      "from": "plan",
-      "to": "memory",
-      "label": "writes"
-    },
-    {
-      "from": "build",
-      "to": "repo",
-      "label": "code+tests"
-    },
-    {
-      "from": "ship",
-      "to": "repo",
-      "label": "configs"
-    }
+  "connections": [
+    { "id": "user-entry", "from": "user", "to": "entry", "label": "request", "variant": "emphasis" },
+    { "id": "hooks-entry", "from": "hooks", "to": "entry", "label": "context", "variant": "dashed" },
+    { "id": "entry-scripts", "from": "entry", "to": "scripts", "label": "profile.sh root", "variant": "default", "fromSide": "left", "toSide": "right" },
+    { "id": "scripts-archify", "from": "scripts", "to": "archify", "label": "archify.sh run", "variant": "default" },
+    { "id": "entry-agents", "from": "entry", "to": "agents", "label": "dispatches", "variant": "dashed" },
+    { "id": "entry-design", "from": "entry", "to": "design", "variant": "default" },
+    { "id": "entry-plan", "from": "entry", "to": "plan", "label": "routes", "variant": "emphasis" },
+    { "id": "entry-build", "from": "entry", "to": "build", "variant": "default" },
+    { "id": "entry-ship", "from": "entry", "to": "ship", "variant": "default" },
+    { "id": "design-artifacts", "from": "design", "to": "artifacts", "label": "publishes", "variant": "default" },
+    { "id": "plan-artifacts", "from": "plan", "to": "artifacts", "label": "spec pages", "variant": "default" },
+    { "id": "plan-memory", "from": "plan", "to": "memory", "label": "writes", "variant": "default" },
+    { "id": "build-repo", "from": "build", "to": "repo", "label": "code+tests", "variant": "default" },
+    { "id": "ship-repo", "from": "ship", "to": "repo", "label": "configs", "variant": "default" }
   ]
 }
