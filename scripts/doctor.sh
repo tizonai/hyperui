@@ -39,6 +39,14 @@ hf_report() {
 }
 hf_report "$PROJECT_SKILLS" "project" || hf_report "$GLOBAL_SKILLS" "global" || row "HyperFrames skills" "missing" "run /hyperui:setup"
 
+# Archify — the diagram engine (scripts/archify.sh locates / installs / updates / runs it)
+ARCHIFY_SH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/archify.sh"
+if AR="$(bash "$ARCHIFY_SH" locate 2>/dev/null)"; then
+  row "Archify (diagrams)" "installed" "$AR · $(bash "$ARCHIFY_SH" version 2>/dev/null || echo 'version unknown') · updated on every diagram task"
+else
+  row "Archify (diagrams)" "missing" "run /hyperui:setup or scripts/archify.sh ensure (npx -y skills add tt-a1i/archify -g -a claude-code -y --copy)"
+fi
+
 # UI UX Pro Max
 if   [[ -d "$PROJECT_SKILLS/ui-ux-pro-max" ]]; then row "UI UX Pro Max" "installed" "project .claude/skills/ui-ux-pro-max"
 elif [[ -d "$GLOBAL_SKILLS/ui-ux-pro-max" ]];  then row "UI UX Pro Max" "installed" "global ~/.claude/skills/ui-ux-pro-max"

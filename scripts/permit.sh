@@ -12,11 +12,16 @@
 #   - Bash             commands that start with "<plugin root>/scripts/profile.sh",
 #                      "<plugin root>/scripts/update-check.sh", "<plugin root>/scripts/verify-deploy.sh"
 #                      or "<plugin root>/scripts/telemetry.sh" (quoted or not; verify-deploy.sh only
-#                      reads a public URL with curl; telemetry.sh writes only under the data dir), and
-#                      "node <plugin root>/scripts/diagram-check.mjs ..." (the diagram validator and
-#                      renderer: reads the IR it is given, writes next to it or under --out) and
-#                      "python3 <plugin root>/scripts/spec-page.py ..." (markdown -> spec page: reads
-#                      the markdown it is given, writes only the output path it is given)
+#                      reads a public URL with curl; telemetry.sh writes only under the data dir);
+#                      "[bash] <plugin root>/scripts/archify.sh ..." (the diagram engine wrapper:
+#                      locate | version | ensure | run — ensure installs/updates Archify under
+#                      ~/.claude/skills with npx; run execs Archify on the paths it is given);
+#                      "node <plugin root>/scripts/diagram-check.mjs ..." (Mermaid export and v1
+#                      migration: reads the IR it is given, writes next to it, under --out or at the
+#                      output path it is given) and "python3 <plugin root>/scripts/spec-page.py ..."
+#                      (markdown -> spec page: reads the markdown it is given, writes only the output
+#                      path it is given). The archify.sh / node / python3 forms reject shell chaining
+#                      (; && | ` $( ) so only the one script runs.
 #   - Read/Edit/Write  of a path under <root>/.hyperui/ for every project root resolved by
 #                      `profile.sh roots` (the cwd, or the repo(s) remembered for it with
 #                      `/hyperui --repo <path>`), so memory lands in the target repo without a
@@ -45,7 +50,7 @@ try:
 except Exception:
     sys.exit(0)
 tool = d.get("tool_name"); inp = d.get("tool_input") or {}
-ok = False; why = "hyperui: plugin's own skill/reference/profile.sh/update-check.sh/verify-deploy.sh/telemetry.sh/diagram-check.mjs/spec-page.py"
+ok = False; why = "hyperui: plugin's own skill/reference/profile.sh/update-check.sh/verify-deploy.sh/telemetry.sh/archify.sh/diagram-check.mjs/spec-page.py"
 def under(p, base):
     return bool(p) and os.path.realpath(p).startswith(base + os.sep)
 if tool == "Skill" and str(inp.get("skill", "")).startswith("hyperui:"):
@@ -58,9 +63,11 @@ elif tool == "Bash":
     for script in (root + "/scripts/profile.sh", root + "/scripts/update-check.sh", root + "/scripts/verify-deploy.sh", root + "/scripts/telemetry.sh"):
         if cmd.startswith(script + " ") or cmd.startswith('"' + script + '" ') or cmd == script or cmd == '"' + script + '"':
             ok = True
-    mjs = root + "/scripts/diagram-check.mjs"; spg = root + "/scripts/spec-page.py"
-    for form in ("node " + mjs + " ", 'node "' + mjs + '" ', "python3 " + spg + " ", 'python3 "' + spg + '" '):
-        if cmd.startswith(form) and ";" not in cmd and "&&" not in cmd and "|" not in cmd and "`" not in cmd and "$(" not in cmd:
+    ash = root + "/scripts/archify.sh"; mjs = root + "/scripts/diagram-check.mjs"; spg = root + "/scripts/spec-page.py"
+    unchained = ";" not in cmd and "&&" not in cmd and "|" not in cmd and "`" not in cmd and "$(" not in cmd
+    for form in (ash + " ", '"' + ash + '" ', "bash " + ash + " ", 'bash "' + ash + '" ',
+                 "node " + mjs + " ", 'node "' + mjs + '" ', "python3 " + spg + " ", 'python3 "' + spg + '" '):
+        if cmd.startswith(form) and unchained:
             ok = True
 if not ok and tool in ("Read", "Edit", "Write"):
     p = inp.get("file_path") or inp.get("path") or ""

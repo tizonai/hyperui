@@ -3,13 +3,14 @@
 # Idempotent: every step checks before acting; failures never abort the others.
 # Steps: preflight → Motion (npm) → Motion AI Kit (official /motion skill + motion-reviewer
 # agent from the motion-ai npm package, and the hosted `motion` MCP; `motion-plus` only with
-# --motion-plus) → HyperFrames → UI UX Pro Max → frontend-design → Impeccable → 21st.dev MCP →
-# Playwright MCP (opt-in, --playwright-mcp: headless browser fallback for visual checks).
+# --motion-plus) → HyperFrames → Archify (diagram engine, always global) → UI UX Pro Max → frontend-design →
+# Impeccable → 21st.dev MCP → Playwright MCP (opt-in, --playwright-mcp: headless browser fallback for visual checks).
 set -euo pipefail
 
 GLOBAL=0
 DRY=0
 SKIP_HYPERFRAMES=0
+SKIP_ARCHIFY=0
 SKIP_UIPRO=0
 SKIP_MOTION=0
 SKIP_21ST=0
@@ -26,13 +27,13 @@ usage() {
 Usage: setup.sh [options]
 
 Installs into the current project (cwd):
-  Motion (npm)            Motion AI Kit (/motion skill + motion MCP)    HyperFrames skills
+  Motion (npm)            Motion AI Kit (/motion skill + motion MCP)    HyperFrames skills    Archify (diagram engine)
   UI UX Pro Max skill     frontend-design plugin    Impeccable plugin    21st.dev MCP (user scope, needs a key)
 
 Options:
   --global              Install the skills to ~/.claude/skills instead of ./.claude/skills
   --21st-key <key>      21st.dev API key (or export TWENTY_FIRST_API_KEY)
-  --skip-hyperframes    --skip-uipro    --skip-motion    --skip-motion-kit    --skip-21st
+  --skip-hyperframes    --skip-archify    --skip-uipro    --skip-motion    --skip-motion-kit    --skip-21st
   --skip-frontend-design    --skip-impeccable
   --motion-plus         Also register the motion-plus MCP (Motion+ subscribers; sign in from the MCP settings)
   --playwright-mcp      Also register the Playwright MCP (headless; local scope, user with --global) as the
@@ -55,6 +56,7 @@ while [[ $# -gt 0 ]]; do
     --global) GLOBAL=1 ;;
     --dry-run) DRY=1 ;;
     --skip-hyperframes) SKIP_HYPERFRAMES=1 ;;
+    --skip-archify) SKIP_ARCHIFY=1 ;;
     --skip-uipro) SKIP_UIPRO=1 ;;
     --skip-motion) SKIP_MOTION=1 ;;
     --skip-21st) SKIP_21ST=1 ;;
@@ -286,6 +288,24 @@ else
     did "hyperframes skills installed → $SKILLS_DIR"; record "HyperFrames skills" "$(status_installed)" "$SKILLS_DIR"
   else
     fail "hyperframes skills install failed"; FAILURES+=("hyperframes"); record "HyperFrames skills" "FAILED" "-"
+  fi
+fi
+
+# ---------------------------------------------------------------- c2. archify (diagram engine)
+# Archify (MIT, https://github.com/tt-a1i/archify) draws every `diagram` specialist diagram. Always a
+# global skill (~/.claude/skills/archify): scripts/archify.sh looks there after the project's
+# .claude/skills and updates it on every diagram task, so this step only covers the first install.
+ARCHIFY_SH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/archify.sh"
+if [[ $SKIP_ARCHIFY -eq 1 ]]; then
+  skip "archify (--skip-archify)"; record "Archify (diagrams)" "skipped" "-"
+elif ARCHIFY_ROOT="$(bash "$ARCHIFY_SH" locate 2>/dev/null)"; then
+  ok "archify $(bash "$ARCHIFY_SH" version 2>/dev/null || echo '?') already at $ARCHIFY_ROOT"; record "Archify (diagrams)" "present" "$ARCHIFY_ROOT"
+else
+  CMD=(npx -y skills add tt-a1i/archify -g -a claude-code -y --copy)
+  if run "install Archify (diagram engine, global)" "${CMD[@]}"; then
+    did "archify installed → $HOME/.claude/skills/archify"; record "Archify (diagrams)" "$(status_installed)" "$HOME/.claude/skills/archify"
+  else
+    fail "archify install failed (npx -y skills add tt-a1i/archify)"; FAILURES+=("archify"); record "Archify (diagrams)" "FAILED" "-"
   fi
 fi
 

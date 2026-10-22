@@ -12,3 +12,4 @@
 2026-10-08 · diagram: fine routing + git evidence deferred to v2
 2026-10-08 · diagram: MIT attribution — NOTICE + skills/diagram/LICENSE-archify + per-function headers
 2026-10-08 · Design approved · spec/diagram-skill/02-design.md
+2026-10-22 · diagram: REVERSAL of 2026-10-08 "one zero-dep Node script, no runtime install" — Archify (MIT) is installed as a Claude Code skill (~/.claude/skills/archify via npx skills) and updated on every diagram task; hyperui's own IR/validator/viewer deleted; hyperui keeps profile/locale, .hyperui/ memory, spec links, artifact publish, Mermaid export and the v1 → Archify migration; Archify's `explainer` type not used (spec pages cover it) · spec/archify-engine.md · https://github.com/tt-a1i/archify

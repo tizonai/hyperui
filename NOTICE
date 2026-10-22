@@ -9,7 +9,8 @@ Third-party components installed by hyperui keep their own licenses:
 HyperFrames (Apache-2.0), Impeccable, UI UX Pro Max, 21st.dev, Motion,
 Anthropic frontend-design.
 
-Portions of skills/diagram and scripts/diagram-check.mjs (geometry, text-fit and port-spread
-helpers) are adapted from Archify (https://github.com/tt-a1i/archify, commit bb990b1),
-MIT License, Copyright (c) 2026 tt-a1i (Archify), Copyright (c) 2025 Cocoon AI.
-The full licence text is in skills/diagram/LICENSE-archify.
+Diagrams are drawn by Archify (https://github.com/tt-a1i/archify), MIT License,
+Copyright (c) 2026 tt-a1i (Archify), Copyright (c) 2025 Cocoon AI. Archify is used as
+an external engine: hyperui installs it separately as a Claude Code skill
+(scripts/archify.sh → `npx skills add tt-a1i/archify`) and calls its CLI; no Archify
+code is copied into or redistributed with this plugin.

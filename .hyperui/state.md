@@ -6,10 +6,10 @@
 <!-- iterations: fix rounds the current unit of work has taken (reset to 0 when a new unit starts); reported anonymously only with telemetry consent -->
 
 phase: ship
-next: 0.13.1 live on npm (manual web-auth publish, no provenance) → next release: tag triggers publish.yml once the npm trusted publisher is registered
-open: register trusted publisher on npmjs.com (Settings → Publishing access → GitHub tizonai/hyperui, publish.yml) so the next tag publishes alone
-iterations: 1
-last_updated: 2026-10-14
+next: release 0.14.0 (Archify as the diagram engine, spec/archify-engine.md): review the branch feature/archify-engine, merge, tag hyperui--v0.14.0 (publish.yml needs the npm trusted publisher)
+open: register trusted publisher on npmjs.com (Settings → Publishing access → GitHub tizonai/hyperui, publish.yml) so the next tag publishes alone · republish diagrams/hyperui-architecture.html to its artifact url from an interactive session (Archify HTML now)
+iterations: 0
+last_updated: 2026-10-22
 
 <!-- artifacts: one line per spec file → the Claude artifact url that shows it (or the fallback .html path). -->
 <!-- Keys are paths relative to .hyperui/; the same key is updated in place on every republish. -->

@@ -28,13 +28,18 @@
 #                                         which necessarily contains the pattern)  (hard fail)
 #   (f) node --check scripts/*.mjs      — every Node script parses                (hard fail)
 #   (g) diagram self-test               — node scripts/diagram-check.mjs --self-test
-#                                         (schema, layout, router, render, mermaid) (hard fail)
+#                                         (Mermaid export of the 5 exportable Archify types, v1 ->
+#                                         Archify migration vs scripts/fixtures/, dogfood IR) (hard fail)
 #   (g2) spec-page self-test             — python3 scripts/spec-page.py --self-test
 #                                         (headings, toc, tables, mermaid, checklists, fragment/full) (hard fail)
-#   (h) archify attribution             — skills/diagram/LICENSE-archify holds the MIT text and
-#                                         NOTICE names Archify (adapted MIT helpers) (hard fail)
-#   (i) viewer size                     — every example IR renders to < 61440 bytes, and so does
-#                                         every committed .hyperui/diagrams/*.html     (hard fail)
+#   (h') archify attribution            — NOTICE names Archify (MIT, github.com/tt-a1i/archify) as an
+#                                         external engine installed separately — no adapted-code
+#                                         wording, no LICENSE-archify copy, no "Adapted from archify"
+#                                         headers left in scripts/ or skills/           (hard fail)
+#   (j) archify smoke                   — when Archify is installed (scripts/archify.sh locate):
+#                                         validate + deliver the dogfood IR, output HTML carries
+#                                         data-animation="trace"; not installed → reported as
+#                                         skipped, never failed                        (hard fail)
 #
 # Gate toggle (.hyperui-gate at the repo root):
 #   The file holds a single word on its first non-comment line:
@@ -51,7 +56,9 @@ cd "$ROOT"
 
 FAIL=0
 WARN=0
+SKIP=0
 ok()   { printf '[check] \xe2\x9c\x93 %s\n' "$*"; }
+skipped() { printf '[check] - %s\n' "$*"; SKIP=$((SKIP + 1)); }
 bad()  { printf '[check] \xe2\x9c\x97 %s\n' "$*"; FAIL=1; }
 warn() { printf '[check] ! %s\n' "$*"; WARN=$((WARN + 1)); }
 
@@ -150,7 +157,7 @@ for f in "${mjs[@]}"; do
 done
 [[ $nc_fail -eq 0 ]] && ok "node --check on ${#mjs[@]} script(s)"
 
-# (g) diagram toolchain self-test (TDD suite: fixtures inline + skills/diagram/references/examples)
+# (g) diagram helpers self-test (Mermaid export, v1 -> Archify migration, dogfood IR; uses Archify's examples when installed)
 if [[ -f scripts/diagram-check.mjs ]]; then
   if out="$(node scripts/diagram-check.mjs --self-test 2>&1)"; then
     ok "diagram-check.mjs --self-test: $(printf '%s\n' "$out" | tail -n1 | sed 's/^self-test: //')"
@@ -174,33 +181,37 @@ if [[ -f scripts/spec-page.py ]]; then
   fi
 fi
 
-# (h) archify attribution: full MIT text next to the skill + the NOTICE line
-if [[ -f skills/diagram/LICENSE-archify ]] && grep -q 'MIT License' skills/diagram/LICENSE-archify \
-   && grep -q 'Permission is hereby granted' skills/diagram/LICENSE-archify; then
-  ok "skills/diagram/LICENSE-archify holds the MIT text"
+# (h') archify attribution: Archify is an external MIT engine, installed separately — never adapted code
+if grep -q 'Archify' NOTICE && grep -q 'MIT' NOTICE && grep -q 'github.com/tt-a1i/archify' NOTICE && grep -qi 'external engine' NOTICE && ! grep -qi 'adapted' NOTICE; then
+  ok "NOTICE names Archify (MIT, external engine)"
 else
-  bad "skills/diagram/LICENSE-archify missing or not the full MIT text"
+  bad "NOTICE must name Archify (MIT, https://github.com/tt-a1i/archify) as an external engine installed separately, with no adapted-code wording"
 fi
-if grep -q 'Archify' NOTICE; then ok "NOTICE names Archify"; else bad "NOTICE lacks the Archify attribution line"; fi
+if [[ ! -e skills/diagram/LICENSE-archify ]] && ! grep -rqs --exclude=check.sh 'Adapted from archify' scripts skills templates; then
+  ok "no adapted Archify code: no LICENSE-archify copy, no 'Adapted from archify' headers"
+else
+  bad "adapted-code leftovers: skills/diagram/LICENSE-archify or 'Adapted from archify' headers still present"
+fi
 
-# (i) viewer size: the self-contained HTML stays under 60 KB (no fonts, no libraries)
-if [[ -f scripts/diagram-check.mjs ]]; then
-  tmp="$(mktemp -d)"; size_fail=0; rendered=0
-  for ir in skills/diagram/references/examples/*.json; do
-    if node scripts/diagram-check.mjs render "$ir" --out "$tmp" >/dev/null 2>&1; then
-      html="$tmp/$(basename "${ir%.json}").html"; bytes="$(wc -c < "$html" | tr -d ' ')"; rendered=$((rendered + 1))
-      [[ "$bytes" -lt 61440 ]] || { bad "viewer $(basename "$html") is $bytes bytes (max 61439)"; size_fail=1; }
+# (j) archify smoke: with the engine installed, validate + deliver the dogfood IR into a temp dir
+if ar="$(bash scripts/archify.sh locate 2>/dev/null)"; then
+  ir="$ROOT/.hyperui/diagrams/hyperui-architecture.json"
+  if [[ -f "$ir" ]]; then
+    tmp="$(mktemp -d)"
+    if out="$(bash scripts/archify.sh run validate architecture "$ir" 2>&1)" \
+       && out2="$(bash scripts/archify.sh run deliver architecture "$ir" "$tmp/hyperui-architecture.html" 2>&1)" \
+       && grep -q 'data-animation="trace"' "$tmp/hyperui-architecture.html"; then
+      ok "archify smoke: validate + deliver of .hyperui/diagrams/hyperui-architecture.json (archify $(bash scripts/archify.sh version 2>/dev/null) at $ar)"
     else
-      bad "render failed for $ir"; size_fail=1
+      bad "archify smoke failed (validate/deliver of the dogfood IR):"
+      printf '%s\n%s\n' "${out:-}" "${out2:-}" | grep -v '^$' | tail -n 8 | sed 's/^/        /'
     fi
-  done
-  for html in .hyperui/diagrams/*.html; do
-    [[ -f "$html" ]] || continue
-    bytes="$(wc -c < "$html" | tr -d ' ')"; rendered=$((rendered + 1))
-    [[ "$bytes" -lt 61440 ]] || { bad "viewer $html is $bytes bytes (max 61439)"; size_fail=1; }
-  done
-  rm -rf "$tmp"
-  [[ $size_fail -eq 0 ]] && ok "viewer size < 61440 bytes on $rendered rendered file(s)"
+    rm -rf "$tmp"
+  else
+    bad "archify smoke: $ir is missing"
+  fi
+else
+  skipped "archify smoke: Archify not installed (scripts/archify.sh ensure) — skipped, not failed"
 fi
 
 # (e) company-agnostic grep
@@ -213,7 +224,7 @@ else
 fi
 
 if [[ $FAIL -ne 0 ]]; then
-  printf '[check] \xe2\x9c\x97 FAILED (%d warning(s))\n' "$WARN"; exit 1
+  printf '[check] \xe2\x9c\x97 FAILED (%d warning(s), %d skipped)\n' "$WARN" "$SKIP"; exit 1
 fi
-printf '[check] \xe2\x9c\x93 PASSED (%d warning(s), gate: %s)\n' "$WARN" "$GATE"
+printf '[check] \xe2\x9c\x93 PASSED (%d warning(s), %d skipped, gate: %s)\n' "$WARN" "$SKIP" "$GATE"
 exit 0

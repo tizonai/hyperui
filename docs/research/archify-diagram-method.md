@@ -1,5 +1,7 @@
 # Archify: how it makes architecture diagrams (research for a hyperui `diagram` skill)
 
+> **Superseded 2026-10-22:** Archify is now the engine. hyperui 0.14.0 installs it as a Claude Code skill (`scripts/archify.sh ensure`, `npx skills add tt-a1i/archify`), updates it on every use and calls its CLI; the hand-ported IR, validator and viewer this study fed (0.13.x) were deleted. This is the historical method study, kept for context; authoring rules come from Archify's own `SKILL.md` at the installed path.
+
 Snapshot 2026-10-08. Source: <https://github.com/tt-a1i/archify> (MIT), pinned at commit `bb990b17b886e83d633e273221615eb259a92c78`. All files were read raw at that SHA (see §7). This is a study of the method; we do not install archify. "(unverified)" marks what I did not open or test myself.
 
 **What it is.** A skill (`archify/SKILL.md`) where the agent writes **typed JSON IR**. Zero-dep Node renderers (`archify/bin/archify.mjs`, ~267 KB) validate it, lay it out with fixed grid math and an obstacle-aware orthogonal router, write **one self-contained HTML** with **inline SVG**, then check that HTML statically and in headless Chrome. Their own A/B test (`experiments/v3-mermaid-validation/RESULT.md`) found that stock Mermaid and Mermaid with archify CSS both looked bad next to agent-placed layouts: *"layout is the product, not CSS"*. They dropped the planned Mermaid→dagre parser. Mermaid input is now only read as topology and then laid out fresh. This affects our Mermaid fast path (§6).
