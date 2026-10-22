@@ -61,10 +61,14 @@ bounded() {
   pid=$!
   set +m
   rm -f "$log.timeout"
-  ( sleep "$secs"; : > "$log.timeout"; kill -- -"$pid" 2>/dev/null; kill "$pid" 2>/dev/null ) &
+  # The watchdog gets its own process group and no stdio: a caller reading our stdout through a
+  # pipe (Claude Code does) would otherwise wait for the inherited `sleep` to finish the bound.
+  set -m
+  ( sleep "$secs"; : > "$log.timeout"; kill -- -"$pid" 2>/dev/null; kill "$pid" 2>/dev/null ) </dev/null >/dev/null 2>&1 &
   wd=$!
+  set +m
   wait "$pid" 2>/dev/null || rc=$?
-  kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null || true
+  kill -- -"$wd" 2>/dev/null; kill "$wd" 2>/dev/null; wait "$wd" 2>/dev/null || true
   if [ -e "$log.timeout" ]; then rm -f "$log.timeout"; rc=124; fi
   return $rc
 }
