@@ -1,0 +1,221 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Web shop — system overview",
+    "output": "web-shop.architecture.html",
+    "subtitle": "Main user journey left to right: visitor, web app, API, database. Stores and branches sit above or below their owner.",
+    "locale": "en",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "visitor",
+      "type": "external",
+      "label": "Visitor",
+      "sublabel": "browser",
+      "pos": [
+        40,
+        200
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "web",
+      "type": "frontend",
+      "label": "Web app",
+      "sublabel": "Next.js",
+      "pos": [
+        270,
+        200
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "auth",
+      "type": "security",
+      "label": "Auth provider",
+      "sublabel": "OIDC",
+      "pos": [
+        270,
+        60
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "api",
+      "type": "backend",
+      "label": "API",
+      "sublabel": "Node · Fastify",
+      "pos": [
+        500,
+        200
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "Redis cache",
+      "pos": [
+        500,
+        60
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "Postgres",
+      "sublabel": "orders, users",
+      "pos": [
+        730,
+        200
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "queue",
+      "type": "messagebus",
+      "label": "Job queue",
+      "pos": [
+        500,
+        340
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "worker",
+      "type": "backend",
+      "label": "Worker",
+      "sublabel": "emails, invoices",
+      "pos": [
+        730,
+        340
+      ],
+      "size": [
+        130,
+        60
+      ]
+    },
+    {
+      "id": "email",
+      "type": "external",
+      "label": "Email API",
+      "pos": [
+        730,
+        480
+      ],
+      "size": [
+        130,
+        60
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Cloud (VPC)",
+      "wraps": [
+        "api",
+        "cache",
+        "db",
+        "queue",
+        "worker"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "visitor-web",
+      "from": "visitor",
+      "to": "web",
+      "label": "HTTPS",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-api",
+      "from": "web",
+      "to": "api",
+      "label": "REST",
+      "variant": "emphasis"
+    },
+    {
+      "id": "api-db",
+      "from": "api",
+      "to": "db",
+      "label": "SQL",
+      "variant": "emphasis"
+    },
+    {
+      "id": "web-auth",
+      "from": "web",
+      "to": "auth",
+      "label": "login",
+      "variant": "security"
+    },
+    {
+      "id": "api-auth",
+      "from": "api",
+      "to": "auth",
+      "label": "verifies JWT",
+      "variant": "security"
+    },
+    {
+      "id": "api-cache",
+      "from": "api",
+      "to": "cache",
+      "label": "sessions",
+      "variant": "default"
+    },
+    {
+      "id": "api-queue",
+      "from": "api",
+      "to": "queue",
+      "label": "enqueues",
+      "variant": "dashed"
+    },
+    {
+      "id": "queue-worker",
+      "from": "queue",
+      "to": "worker",
+      "label": "consumes",
+      "variant": "dashed"
+    },
+    {
+      "id": "worker-db",
+      "from": "worker",
+      "to": "db",
+      "label": "writes",
+      "variant": "default"
+    },
+    {
+      "id": "worker-email",
+      "from": "worker",
+      "to": "email",
+      "label": "sends",
+      "variant": "default"
+    }
+  ]
+}
