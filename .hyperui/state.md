@@ -7,7 +7,7 @@
 
 phase: ship
 next: release 0.14.0 (Archify as the diagram engine, spec/archify-engine.md): review the branch feature/archify-engine, merge, tag hyperui--v0.14.0 (publish.yml needs the npm trusted publisher)
-open: register trusted publisher on npmjs.com (Settings → Publishing access → GitHub tizonai/hyperui, publish.yml) so the next tag publishes alone · republish diagrams/hyperui-architecture.html to its artifact url from an interactive session (Archify HTML now)
+open: register trusted publisher on npmjs.com (Settings → Publishing access → GitHub tizonai/hyperui, publish.yml) so the next tag publishes alone
 iterations: 0
 last_updated: 2026-10-22
 
