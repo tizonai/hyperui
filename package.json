@@ -1,6 +1,6 @@
 {
   "name": "@tizonai/hyperui",
-  "version": "0.14.0",
+  "version": "0.14.1",
   "description": "Product copilot for anything with a UI: one entry point (/hyperui) that profiles the user, shows designs before building, plans (spec), builds with language rules and TDD, reviews security and complexity, and guides shipping (domain, hosting, payments by country) and infra — with per-project memory in .hyperui/.",
   "bin": {
     "hyperui": "bin/hyperui.js"
