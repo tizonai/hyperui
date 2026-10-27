@@ -111,7 +111,9 @@ break it into requirements?"
 
 ### Phase 2 — Requirements (`01-requirements.md`, `references/requirements-template.md`)
 Break the PRD into behavior, do not reinvent it. Ask only what is missing (data stored? who
-logs in? money moves? personal data? offline? languages?). Use **EARS** (Easy Approach to
+logs in? money moves? personal data? offline? languages? state that outlives a request or periodic
+work — then: what happens to it on SIGTERM, on every entrypoint, and what time budget does the
+chain have?). Use **EARS** (Easy Approach to
 Requirements Syntax — explain it in one line the first time): `WHEN <trigger> THE SYSTEM SHALL
 <observable outcome>`; `WHILE <state>` for modes, `IF <unwanted> THEN` for failures. Each REQ =
 one behavior, acceptance as **Given / When / Then** scenarios, binary, plus the real build and

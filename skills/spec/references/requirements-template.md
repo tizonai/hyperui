@@ -53,7 +53,13 @@ THE SYSTEM SHALL <observable outcome>
 
 ## Non-functional requirements
 <Only if they apply: performance budget, accessibility level, product languages / i18n,
-personal-data handling, uptime, device support. One EARS line each.>
+personal-data handling, uptime, device support. One EARS line each.
+Mandatory when the change adds state that outlives a request (buffer, timer, cache, queue) or
+periodic work (cron, sweep, pipeline step) — each answer becomes a REQ with a test:
+- Deploy / shutdown: WHEN the process receives SIGTERM on <every entrypoint that runs it>
+  THE SYSTEM SHALL <flush / release the state, or count what is lost>.
+- Time budget: WHILE <job> runs THE SYSTEM SHALL finish <step> within <N> s, the whole chain within
+  <interval>, and SHALL still run <the steps after it> IF <step> fails.>
 
 ## Open questions
 <Only decisions that block the design.>

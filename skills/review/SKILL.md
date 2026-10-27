@@ -53,7 +53,20 @@ points > 10, nesting > 3, functions > ~60 lines, boolean switches). Use the repo
 number when present (ESLint `complexity`, `radon cc`, `gocyclo`, `lizard`); otherwise count by
 hand and say so. Complexity is a finding only if it grows with data or real usage.
 
-## 4. Safety pass
+## 4. Lifecycle and chained-work pass
+
+Open `references/lifecycle-checklist.md`. Two shapes trigger it; skip silently when neither is in scope.
+- **State that outlives a request** (buffer, batching timer, cache, in-flight set, queue): list every
+  entrypoint of the service (`start*`, workers, `scripts/*`, cron runners) and, for each one that
+  executes the code filling that state, name what flushes or releases it on SIGTERM — including
+  what arrives during a graceful-shutdown delay before `process.exit`. No owner on an entrypoint =
+  blocking; lost items not counted (a `dropped` metric with a reason) = blocking.
+- **A step added to an existing chain** (cron, sweep, pipeline, batch job): isolation (the steps
+  after it still run when it throws), order (never before a step that bounds data residency or
+  releases a lock), budget (sum of the chain's budgets < its interval), and a test that makes the
+  new step fail and asserts the rest completed. Any of the four missing = blocking.
+
+## 5. Safety pass
 
 Scan the scope and any command hyperui is about to run against `references/safety.md`:
 destructive SQL or migrations, data deletion, `rm -rf` outside the workspace, force-push,
@@ -62,7 +75,7 @@ approvals, dependency changes, external calls that mutate state or cost money. A
 is **never executed** by this skill: stop, explain in one line, propose the safer path, wait
 for an explicit yes. Irreversible = always confirmed.
 
-## 5. Classify every finding
+## 6. Classify every finding
 
 | Class | Meaning | Examples |
 |---|---|---|
@@ -83,7 +96,7 @@ db.ts:12 — blocking: SQL built by concatenating req.query.id (A05 Injection)
 When unsure whether something is truly wrong, phrase it as a question and class it `should`
 at most — a confident false positive costs more trust than a missed nit.
 
-## 6. Fix blocking findings before "done"
+## 7. Fix blocking findings before "done"
 
 - **hyperui's own output** (scope came from `build`, or hyperui wrote it this session): fix
   every `blocking` finding **now**, in place, with the cheat sheet's primary defense (e.g.
@@ -96,11 +109,11 @@ at most — a confident false positive costs more trust than a missed nit.
   blocking ones" · "Show me the diff first" (every proposed fix in full, then ask again) · "Skip". The
   chosen option covers those edits only; while waiting, `open:` holds `pending choice: apply review fixes`.
 - A fix that needs a risky action (migration, dependency change, secret rotation, deploy)
-  follows §4: propose and wait.
-- If the user declines a blocking fix, record it as an accepted risk (§8) and say once what it
+  follows §5: propose and wait.
+- If the user declines a blocking fix, record it as an accepted risk (§9) and say once what it
   leaves exposed.
 
-## 7. Report
+## 8. Report
 
 **Experts (`dev`, `senior`)** — the whole report is **at most 5 lines**, nothing else:
 1. `Reviewed: <n files> · security (OWASP 2025<, ASVS if applied>) · complexity · safety`
@@ -110,7 +123,7 @@ More than three blocking items → the three worst, then "+N more". Zero finding
 "no findings" and the report is two lines. The full finding blocks and the `should`/`nit`
 details are **not** printed — only the counts — unless the user asks ("detalle", "show all").
 For the user's code, the proposed fix follows the report as **one** fenced diff (code, not report
-lines), then the §6 choice. No extra summaries, notes or bullet lists.
+lines), then the §7 choice. No extra summaries, notes or bullet lists.
 
 **Non-tech** — two plain sentences, no jargon, no URLs unless asked: what was protected and
 whether anything needs their decision. Example: "I checked the new sign-up form for the
@@ -119,7 +132,7 @@ data. Nothing needs your decision."
 
 When the user asked for the full list, show every finding block, grouped by class.
 
-## 8. What NOT to flag
+## 9. What NOT to flag
 
 - Style the formatter or linter already handles; personal preference with no real impact.
 - Pre-existing code outside the scope — read it for context; if it is the root cause of an
@@ -132,7 +145,7 @@ When the user asked for the full list, show every finding block, grouped by clas
   repo's scanner; micro-optimizations; big refactors during a hotfix.
 - Risks already accepted in `decisions.md`.
 
-## 9. Close
+## 10. Close
 
 - `.hyperui/state.md`: `phase: review` (or back to `build` while blocking fixes are pending;
   `done` for the task once clean), `next:` one line, `open:` bullets for unfixed `should`

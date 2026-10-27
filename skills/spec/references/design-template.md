@@ -86,6 +86,12 @@ what is never logged. Resolve explicitly — never by assumption.>
 ### Errors
 <What the user sees per failure; how errors are represented in code and mapped to responses.>
 
+### Lifecycle and budgets          <!-- N/A — stateless request/response, when nothing applies -->
+<Per piece of state that outlives a request: owning process (API / worker / cron), what flushes or
+releases it on SIGTERM there, what is counted when that fails. Per step added to a cron / sweep /
+pipeline: own budget, sum of the chain vs its interval, position after the steps that bound data
+residency, what still runs if it throws.>
+
 ### Configuration and secrets
 <Environment variables with defaults; `.env.example` committed, `.env` never. Where secrets live.>
 
