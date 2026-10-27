@@ -1,4 +1,4 @@
-# Lifecycle and chained-work checklist
+# Lifecycle, chained-work and stale-response checklist
 
 Why this exists: a 2026-10-23 review of a cdp change found a step-log buffer flushed on SIGTERM only in
 the API entrypoint while every write happened on worker pods, and a new prune inserted into a sweep
@@ -44,6 +44,28 @@ maintenance queries that already exists.
    time or a rollup, and record it as a follow-up with the numbers.
 5. **Tests.** Make the new step fail and assert the rest of the chain completed and the failure was
    counted; assert the budget option is honoured.
+
+## C. Stale responses, contracts and mirrored constants
+
+Trigger: UI or service code that awaits a request and then writes state, or that reads a field by position
+from another service's payload, or that declares a constant said to mirror another repo.
+
+1. **Context switch audit.** Find the watcher that resets state on a context change (program, tenant, route,
+   selection). List every `await` in the same file whose continuation writes state or emits. Each one
+   captures the context before the await and bails if it changed. A file with one guarded handler and three
+   unguarded ones is three findings, not a pass.
+2. **Ordering and caps across the contract.** `[0]`, `[length - 1]`, `.find` first-match, `Math.min(x, CAP)`:
+   trace each to the producer (`ORDER BY`, constant, enum) and require the assumption to be written on the
+   shared type. Diff every "mirror of backend X" constant against X now.
+3. **Refresh keys.** A refresh keyed on another response's field (`computed_at`, etag) is silent whenever
+   that response fails, is rate-limited or is cached: key on the tick.
+4. **One hop further.** Before asserting "renders nonsense", "dead write", "collides" or "unreachable":
+   open the callee, the UI primitive (`disabled` vs `loading`), and the domain validation that bounds the
+   input. Unconfirmed → "verify by running", never a defect.
+
+Origin: 2026-10-26, two automated reviews of the same PR — one found 14 items of which 4 were misreads from
+stopping one hop short, the other missed the only real race because it audited the guards that existed
+instead of the handlers that lacked one.
 
 ## Report lines
 

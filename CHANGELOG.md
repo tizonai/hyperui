@@ -2,6 +2,9 @@
 
 All notable changes to hyperui. Format: Keep a Changelog; versions follow SemVer.
 
+## Unreleased
+- **`review` §4 gains section C** (stale responses after a context switch, producer/consumer ordering and caps written on the shared type, mirrored constants diffed against the backend, refresh keys on the tick, and the one-hop rule before asserting a defect). From comparing two automated reviews of the same PR on 2026-10-26.
+
 ## 0.14.1 — 2026-10-27
 - **Lifecycle and chained-work pass in `review`** (new §4, `references/lifecycle-checklist.md`): state that outlives a request needs a named owner at SIGTERM on every entrypoint that runs it (API, worker, cron), including what arrives during a graceful-shutdown delay, and lost items are counted; a step added to an existing chain (cron, sweep, pipeline) is checked for isolation, order against data-residency steps, budget sum vs interval, and a failure test. Later sections renumbered (safety → §5 … close → §10).
 - **`spec` asks the two lifecycle questions** in Phase 2 and the requirements template's NFR section (deploy/shutdown behaviour per entrypoint; time budget of periodic work and what still runs on failure), and the design template gets a `Lifecycle and budgets` section. Prompted by a 2026-10-23 review of a cdp change where a worker-side buffer flushed only on the API and a new prune could abort the sweep that bounds PII retention.

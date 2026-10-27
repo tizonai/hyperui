@@ -53,9 +53,9 @@ points > 10, nesting > 3, functions > ~60 lines, boolean switches). Use the repo
 number when present (ESLint `complexity`, `radon cc`, `gocyclo`, `lizard`); otherwise count by
 hand and say so. Complexity is a finding only if it grows with data or real usage.
 
-## 4. Lifecycle and chained-work pass
+## 4. Lifecycle, chained-work and stale-response pass
 
-Open `references/lifecycle-checklist.md`. Two shapes trigger it; skip silently when neither is in scope.
+Open `references/lifecycle-checklist.md`. Three shapes trigger it; skip silently when none is in scope.
 - **State that outlives a request** (buffer, batching timer, cache, in-flight set, queue): list every
   entrypoint of the service (`start*`, workers, `scripts/*`, cron runners) and, for each one that
   executes the code filling that state, name what flushes or releases it on SIGTERM — including
@@ -65,6 +65,11 @@ Open `references/lifecycle-checklist.md`. Two shapes trigger it; skip silently w
   after it still run when it throws), order (never before a step that bounds data residency or
   releases a lock), budget (sum of the chain's budgets < its interval), and a test that makes the
   new step fail and asserts the rest completed. Any of the four missing = blocking.
+- **Awaited requests that write state, positional reads of another payload, mirrored constants**
+  (section C): every await after a context switch re-checks the context; `[0]` / `[length - 1]` / caps are
+  traced to the producer and written on the shared type; a "mirror of backend X" constant is diffed
+  against X. Before asserting "nonsense", "dead write" or "unreachable", read the callee, the UI
+  primitive and the domain rule — unconfirmed claims are "verify by running", not findings.
 
 ## 5. Safety pass
 
